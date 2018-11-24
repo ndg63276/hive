@@ -40,9 +40,10 @@ def get_temps(headers, id, startdate, enddate=None):
         else:
                end = str(int(unix_time_millis(enddate)))
         params={'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'AVG'}
-        r=requests.get(url+'/channels/temperature@'+id, headers=headers, params=params)
-        vals=r.json()['channels'][0]['values']
-        return vals
+        r=requests.get(url+'/channels/temperature@'+id+',targetTemperature@'+id, headers=headers, params=params)
+        temps=r.json()['channels'][0]['values']
+        targetTemps = r.json()['channels'][1]['values']
+        return temps, targetTemps
 
 headers = login()
 id = get_id(headers)
@@ -122,7 +123,7 @@ if fs.has_key('end'):
 #startdate=tz.localize(startdate).astimezone(pytz.utc)
 #enddate=tz.localize(enddate).astimezone(pytz.utc)
 
-vals = get_temps(headers, id, startdate, enddate)
+temps, targetTemps = get_temps(headers, id, startdate, enddate)
 
 print """
 <html>
@@ -157,21 +158,28 @@ chart.render();
 
 var data = [];
 var dataPoints = [];
+var dataPoints2 = [];
 """
+
 if startdate.day == enddate.day:
         xformat="HH:mm:ss"
 else:
         xformat="DD-MM-YY HH:mm:ss"
 
-print "var dataSeries = { type: 'line', xValueType: 'dateTime', showInLegend: false, legendText: 'test', xValueFormatString: '"+xformat+"' };"
+print "var dataSeries = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Actual', xValueFormatString: '"+xformat+"' };"
+print "var dataSeries2 = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Setpoint', xValueFormatString: '"+xformat+"' };"
 
-for i in sorted(vals.keys()):
-        print "dataPoints.push({x: "+str(i)+", y: "+str(vals[i])+" });"
+for i in sorted(temps.keys()):
+        print "dataPoints.push({x: "+str(i)+", y: "+str(temps[i])+" });"
 
+for i in sorted(targetTemps.keys()):
+        print "dataPoints2.push({x: "+str(i)+", y: "+str(targetTemps[i])+" });"
 
 print """
 dataSeries.dataPoints = dataPoints;
+dataSeries2.dataPoints = dataPoints2;
 data.push(dataSeries);
+data.push(dataSeries2);
 
 </script>
 <script src="../canvasjs.min.js"></script>
@@ -182,11 +190,11 @@ data.push(dataSeries);
 """
 
 print """<br /><br /><center><form>
-<input type='button' onClick='window.location.href=pagelink+"&start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"&start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.reload(true);' value='Refresh' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"&start=-24hours&end=now";' value='Last 24 hours' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"&start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>"""
+<input type='button' onClick='window.location.href=pagelink+"?start=-24hours&end=now";' value='Last 24 hours' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>"""
 
 
 print "</form></center><br />"
