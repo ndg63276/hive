@@ -15,7 +15,8 @@ url = 'https://api-prod.bgchprod.info:443/omnia'
 epoch = datetime.utcfromtimestamp(0)
 
 def unix_time_millis(dt):
-        return (dt - epoch).total_seconds() * 1000.0
+		td = (dt - epoch)
+		return 1000 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 def login():
         headers = {'Content-Type': 'application/vnd.alertme.zoo-6.1+json', 'Accept': 'application/vnd.alertme.zoo-6.1+json', 'X-Omnia-Client': 'Hive Web Dashboard'}
