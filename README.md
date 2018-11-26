@@ -4,7 +4,7 @@ A graphical view of the temperature and setpoint in your house. You can also now
 
 ## Instructions
 1. Clone this repository.
-2. Copy cgi-bin/credentials.py to cgi-bin/credentials.py, and edit to your login at my.hivehome.com
+2. Copy cgi-bin/credentials.example.py to cgi-bin/credentials.py, and edit to your login at my.hivehome.com
 3. Run python serve.py to start the server.
 4. In a browser, go to http://localhost:8000/cgi-bin/hive.py . You should see a graph of the last 24 hours of temperatures, and the setpoints, in your house.
 
