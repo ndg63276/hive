@@ -29,7 +29,7 @@ def get_id(headers):
         r=requests.get(url+'/nodes',headers=headers)
         nodes=r.json()['nodes']
         for i in range(len(nodes)):
-                if nodes[i]['name'] == 'Zone 1':
+                if nodes[i]['name'] == 'Receiver 2':
                         id=nodes[i]['id']
         return id
 
@@ -45,9 +45,20 @@ def get_temps(headers, id, startdate, enddate=None):
         targetTemps = r.json()['channels'][1]['values']
         return temps, targetTemps
 
+def get_current_temps(headers, id):
+        startdate = datetime.now()-timedelta(minutes=60)
+        start = str(int(unix_time_millis(startdate)))
+        end = str(int(time.time()*1000))
+        params={'start':start, 'end':end, 'timeUnit':'SECONDS', 'rate':'10', 'operation':'MAX'}
+        r=requests.get(url+'/channels/temperature@'+id+',targetTemperature@'+id, headers=headers, params=params)
+        temps=r.json()['channels'][0]['values']
+        targetTemps = r.json()['channels'][1]['values']
+        currentTemp = round(temps[sorted(temps.keys())[-1]],2)
+        currentTarget = round(targetTemps[sorted(targetTemps.keys())[-1]],1)
+        return currentTemp, currentTarget
+
 headers = login()
 id = get_id(headers)
-
 
 print "Content-type:text/html"
 print
@@ -133,7 +144,7 @@ print """
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>My Hive Temperatures</title>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
 var pagelink=location.origin+location.pathname;
 window.onload = function () {
@@ -181,15 +192,39 @@ dataSeries2.dataPoints = dataPoints2;
 data.push(dataSeries);
 data.push(dataSeries2);
 
+function setTemp() {
+	temp = document.getElementById("tempToSet").value;
+	console.log(temp);
+	var data={'nodes': [{'attributes': {'targetHeatTemperature': {'targetValue': temp}}}]};"""
+print "	var headers="+str(headers).replace("u'","'")+";"
+print "	$.ajax({"""
+print "		url: '"+url+"/nodes/"+id+"',"
+print """		type: 'PUT',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function () {
+			console.log('success')
+		}
+	});
+	location.reload();
+
+}
 </script>
 <script src="../canvasjs.min.js"></script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
-<div id="chartContainer" style="height: 800px; max-width: 1500px; margin: 0px auto;">
-</div>
 """
+currentTemp, currentTarget = get_current_temps(headers, id)
+print "<table border=0 align=center width=50%><tr align=center><th width=33%>Current Temperature</th><th width=33%>Current Setpoint</th><th>New setpoint</th></tr>"
+print "<tr align=center><td style='padding-top: 0px'>"+str(currentTemp)+"&deg;C</td>"
+print "<td style='padding-top: 0px'>"+str(currentTarget)+"&deg;C</td>"
+print "<td style='padding-top: 20px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=5 value="+str(currentTarget)+"></input>&deg;C"
+print "<input type='submit' hidden /></form></td></tr></table>"
 
-print """<br /><br /><center><form>
+print """
+<div id="chartContainer" style="height: 800px; max-width: 1500px; margin: 0px auto;"></div>
+<br /><br /><center><form>
 <input type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.reload(true);' value='Refresh' style='font-size:20px;height:100px;width:200px'>
