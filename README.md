@@ -1,6 +1,6 @@
 # Hive Web Interface
 
-For now, just a graph of temperatures and setpoints in your home.
+A graphical view of the temperature and setpoint in your house. You can also now change the setpoint.
 
 ## Instructions
 1. Clone this repository.
@@ -11,3 +11,8 @@ For now, just a graph of temperatures and setpoints in your home.
 You should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/cgi-bin/hive.py?start=-1hour. You can edit the start parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-3hours, and even add an end parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-2hours&end=-1hour.
 
 You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://localhost:8000/cgi-bin/hive.py?start=201801011200&end=20180131.
+
+## Not working?
+
+This code looks for a node called "Receiver 2" in your Hive account. If you get no data, or can't set the temperature, you could try changing that to "Receiver 1" in cgi-bin/hive.py.
+
