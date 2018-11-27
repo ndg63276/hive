@@ -1,6 +1,6 @@
 # Hive Web Interface
 
-A graphical view of the temperature and setpoint in your house. You can also now change the setpoint.
+A graphical view of the temperature and setpoint in your house. You can also now change the setpoint, and set the boost time and temperature.
 
 ## Instructions
 1. Clone this repository.
