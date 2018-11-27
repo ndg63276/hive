@@ -136,6 +136,11 @@ if fs.has_key('end'):
 #enddate=tz.localize(enddate).astimezone(pytz.utc)
 
 temps, targetTemps = get_temps(headers, id, startdate, enddate)
+currentTemp, currentTarget = get_current_temps(headers, id)
+if startdate.day == enddate.day:
+        xformat="HH:mm:ss"
+else:
+        xformat="DD-MM-YY HH:mm:ss"
 
 print """
 <html>
@@ -166,17 +171,22 @@ var chart = new CanvasJS.Chart("chartContainer", {
 });
 
 chart.render();
+"""
+print "var currentTemp="+str(currentTemp)+";"
+print "var currentTargetRaw="+str(currentTarget)+";"
+print """
+var currentTarget=currentTargetRaw.toFixed(1)
+document.getElementById('currentTempId').innerHTML=currentTemp+'&deg;C'
+document.getElementById('currentTargetId').innerHTML=currentTarget+'&deg;C'
+document.getElementById('tempToSet').value=currentTarget
+document.getElementById('boostTempToSet').value=currentTarget
+
 }
 
 var data = [];
 var dataPoints = [];
 var dataPoints2 = [];
 """
-
-if startdate.day == enddate.day:
-        xformat="HH:mm:ss"
-else:
-        xformat="DD-MM-YY HH:mm:ss"
 
 print "var dataSeries = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Actual', xValueFormatString: '"+xformat+"' };"
 print "var dataSeries2 = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Setpoint', xValueFormatString: '"+xformat+"' };"
@@ -192,15 +202,18 @@ dataSeries.dataPoints = dataPoints;
 dataSeries2.dataPoints = dataPoints2;
 data.push(dataSeries);
 data.push(dataSeries2);
+"""
+print "var headers="+str(headers).replace("u'","'")+";"
+print "var nodesurl='"+url+"/nodes/"+id+"';"
 
+print """
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
-	console.log(temp);
-	var data={'nodes': [{'attributes': {'targetHeatTemperature': {'targetValue': temp}}}]};"""
-print "	var headers="+str(headers).replace("u'","'")+";"
-print "	$.ajax({"""
-print "		url: '"+url+"/nodes/"+id+"',"
-print """		type: 'PUT',
+	console.log('set '+temp);
+	var data={'nodes': [{'attributes': {'targetHeatTemperature': {'targetValue': temp}}}]};
+	$.ajax({
+		url: nodesurl,
+		type: 'PUT',
 		headers: headers,
 		data: JSON.stringify(data),
 		success: function () {
@@ -208,34 +221,46 @@ print """		type: 'PUT',
 		}
 	});
 	location.reload();
-
+}
+function boostTemp() {
+        temp = document.getElementById("boostTempToSet").value;
+        time = document.getElementById("boostTime").value;
+        console.log('boost '+temp+' '+time);
+        var data={'nodes': [{'attributes': {'targetHeatTemperature': {'targetValue': temp}, 'activeHeatCoolMode': {'targetValue': 'BOOST'}, 'scheduleLockDuration': {'targetValue': time}}}]}; 
+        $.ajax({
+	        url: nodesurl,
+                type: 'PUT',
+                headers: headers,
+                data: JSON.stringify(data),
+                success: function () {
+                        console.log('success')
+                }
+        });
+        location.reload();
 }
 </script>
 <script src="../canvasjs.min.js"></script>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
-"""
-currentTemp, currentTarget = get_current_temps(headers, id)
-print "<table border=0 align=center width=50%><tr align=center><th width=33%>Current Temperature</th><th width=33%>Current Setpoint</th><th>New setpoint</th></tr>"
-print "<tr align=center><td style='padding-top: 0px'>"+str(currentTemp)+"&deg;C</td>"
-print "<td style='padding-top: 0px'>"+str(currentTarget)+"&deg;C</td>"
-print "<td style='padding-top: 20px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=5 value="+str(currentTarget)+"></input>&deg;C"
-print "<input type='submit' hidden /></form></td></tr></table>"
 
-print """
+<table border=0 align=center width=70%><tr align=center><th width=25%>Current Temperature</th><th width=25%>Current Setpoint</th><th width=25%>New setpoint</th><th>Boost</th></tr>
+<tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
+<td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
+<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
+</tr></table>
+
 <div id="chartContainer" style="height: 800px; max-width: 1500px; margin: 0px auto;"></div>
 <br /><br /><center><form>
 <input type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.reload(true);' value='Refresh' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.href=pagelink+"?start=-24hours&end=now";' value='Last 24 hours' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>"""
+<input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>
 
+</form></center><br />
 
-print "</form></center><br />"
-
-print """
 </body>
 </html>
 """
