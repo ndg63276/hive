@@ -9,6 +9,7 @@ import re
 import requests
 import json
 import pytz
+from haversine import haversine
 url = 'https://api-prod.bgchprod.info:443/omnia'
 
 with open('cgi-bin/credentials.json') as f:
@@ -16,11 +17,61 @@ with open('cgi-bin/credentials.json') as f:
 	username = j['username']
 	password = j['password']
 
+met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
 epoch = datetime.utcfromtimestamp(0)
 
 def unix_time_millis(dt):
-		td = (dt - epoch)
-		return 1000 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+	td = (dt - epoch)
+	return 1000 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+def get_location_id():
+	try:
+		return j['location_id']
+	except:
+		pass
+	try:
+		latitude = j['latitude']
+		longitude = j['longitude']
+	except:
+		return None
+	if latitude == 0 and longitude == 0:
+		return None
+	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key='+met_office_key
+	r = requests.get(weather_url)
+	min_dist, min_dist_id = 9999999, 0
+	for location in r.json()['Locations']['Location']:
+		this_lat = float(location['latitude'])
+		this_long = float(location['longitude'])
+		this_dist = haversine((latitude, longitude), (this_lat, this_long))
+		if this_dist < min_dist:
+			min_dist = this_dist
+			min_dist_id = location['id']
+	j['location_id'] = min_dist_id
+	with open('cgi-bin/credentials.json','w') as f:
+	        json.dump(j,f, sort_keys=True, indent=4)
+	return min_dist_id
+
+def get_weather(startdate, enddate):
+	to_return = {}
+	location_id = get_location_id()
+	if location_id is None:
+		return {}
+	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/'+location_id+'?res=hourly&key='+met_office_key
+	r = requests.get(weather_url)
+	days = r.json()['SiteRep']['DV']['Location']['Period']
+	for day in days:
+		the_date = day['value']
+		if type(day['Rep']) == list:
+			hours = day['Rep']
+		else:
+			hours = [day['Rep']]
+		for hour in hours:
+			the_time = str(int(hour['$'])/60)
+			dt_time = datetime.strptime(the_date+the_time,'%Y-%m-%dZ%H')
+			the_temp = hour['T']
+			if dt_time > startdate and dt_time < enddate:
+				to_return[unix_time_millis(dt_time)] = the_temp
+	return to_return
 
 def login():
         headers = {'Content-Type': 'application/vnd.alertme.zoo-6.1+json', 'Accept': 'application/vnd.alertme.zoo-6.1+json', 'X-Omnia-Client': 'Hive Web Dashboard'}
@@ -141,6 +192,7 @@ if fs.has_key('end'):
 
 temps, targetTemps = get_temps(headers, id, startdate, enddate)
 currentTemp, currentTarget = get_current_temps(headers, id)
+weather = get_weather(startdate, enddate)
 if startdate.day == enddate.day:
         xformat="HH:mm:ss"
 else:
@@ -190,10 +242,12 @@ document.getElementById('boostTempToSet').value=currentTarget
 var data = [];
 var dataPoints = [];
 var dataPoints2 = [];
+var dataPoints3 = [];
 """
 
 print "var dataSeries = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Actual', xValueFormatString: '"+xformat+"' };"
 print "var dataSeries2 = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Setpoint', xValueFormatString: '"+xformat+"' };"
+print "var dataSeries3 = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Weather', xValueFormatString: '"+xformat+"' };"
 
 for i in sorted(temps.keys()):
         print "dataPoints.push({x: "+str(i)+", y: "+str(temps[i])+" });"
@@ -201,11 +255,16 @@ for i in sorted(temps.keys()):
 for i in sorted(targetTemps.keys()):
         print "dataPoints2.push({x: "+str(i)+", y: "+str(targetTemps[i])+" });"
 
+for i in sorted(weather.keys()):
+        print "dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });"
+
 print """
 dataSeries.dataPoints = dataPoints;
 dataSeries2.dataPoints = dataPoints2;
+dataSeries3.dataPoints = dataPoints3;
 data.push(dataSeries);
 data.push(dataSeries2);
+data.push(dataSeries3);
 """
 print "var headers="+str(headers).replace("u'","'")+";"
 print "var nodesurl='"+url+"/nodes/"+id+"';"
