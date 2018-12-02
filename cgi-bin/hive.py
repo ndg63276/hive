@@ -7,10 +7,14 @@ import time
 from datetime import datetime, timedelta
 import re
 import requests
-from credentials import username, password
-
+import json
 import pytz
 url = 'https://api-prod.bgchprod.info:443/omnia'
+
+with open('cgi-bin/credentials.json') as f:
+	j = json.load(f)
+	username = j['username']
+	password = j['password']
 
 epoch = datetime.utcfromtimestamp(0)
 
