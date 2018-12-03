@@ -95,7 +95,7 @@ def get_temps(headers, id, startdate, enddate=None):
                end = str(int(time.time()*1000))
         else:
                end = str(int(unix_time_millis(enddate)))
-        params={'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'AVG'}
+        params={'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'}
         r=requests.get(url+'/channels/temperature@'+id+',targetTemperature@'+id, headers=headers, params=params)
         temps=r.json()['channels'][0]['values']
         targetTemps = r.json()['channels'][1]['values']
