@@ -2,6 +2,9 @@
 
 A graphical view of the temperature and setpoint in your house. You can also now change the setpoint, and set the boost time and temperature.
 
+![Screenshot](/Screenshot.png?raw=true)
+
+
 ## Instructions
 1. Clone this repository.
 2. Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json, and edit to your login at my.hivehome.com. Add your latitude and longitude to show the outside temperature. (Put your postcode into latlong.net)
