@@ -8,13 +8,21 @@ A graphical view of the temperature and setpoint in your house. You can also now
 ## Instructions
 1. If you're on Linux, open a Terminal, or on a Mac, open the Terminal application, from the Utilities folder.
 2. Clone this repository.
-`git clone https://github.com/ndg63276/hive-web.git`
+```bash
+git clone https://github.com/ndg63276/hive-web.git
+```
 3. Change directory into the newly created hive-web folder.
-`cd hive-web`
+```bash
+cd hive-web
+```
 4. Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json.
-`cp cgi-bin/credentials.example.json cgi-bin/credentials.json`
+```bash
+cp cgi-bin/credentials.example.json cgi-bin/credentials.json
+```
 5. Edit that file.
-`nano cgi-bin/credentials.json`
+```bash
+nano cgi-bin/credentials.json
+```
 You should get a window like this:
 ```json
     {
@@ -27,7 +35,9 @@ You should get a window like this:
 6. Change the username and password to your login at my.hivehome.com. If you add your latitude and longitude, the graph will show the outside temperature. You can find them by putting your postcode into latlong.net.
 7. Press Ctrl-O to save the file, then Ctrl-X to exit nano.
 8. Run this command to start the server:
-`python serve.py`
+```bash
+python serve.py
+```
 9. In a web browser, go to http://localhost:8000/cgi-bin/hive.py . You should see a graph of the last 24 hours of temperatures, and the setpoints, in your house.
 
 ## Advanced
