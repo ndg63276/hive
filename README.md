@@ -32,13 +32,13 @@ You should get a window like this:
         "longitude": 0
     }
 ```
-6. Change the username and password to your login at my.hivehome.com. If you add your latitude and longitude, the graph will show the outside temperature. You can find them by putting your postcode into latlong.net.
+6. Change the username and password to your login at my.hivehome.com. If you add your latitude and longitude, the graph will show the outside temperature. You can find them by putting your postcode into [latlong.net](https://www.latlong.net/).
 7. Press Ctrl-O to save the file, then Ctrl-X to exit nano.
 8. Run this command to start the server:
 ```bash
 python serve.py
 ```
-9. In a web browser, go to http://localhost:8000/cgi-bin/hive.py . You should see a graph of the last 24 hours of temperatures, and the setpoints, in your house.
+9. In a web browser, go to [http://localhost:8000/cgi-bin/hive.py](http://localhost:8000/cgi-bin/hive.py) . You should see a graph of the last 24 hours of temperatures, and the setpoints, in your house.
 
 ## Advanced
 You should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/cgi-bin/hive.py?start=-1hour. You can edit the start parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-3hours, and even add an end parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-2hours&end=-1hour.
