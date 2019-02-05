@@ -29,7 +29,8 @@ You should get a window like this:
         "username": "someone@example.com",
         "password": "abc123",
         "latitude": 0,
-        "longitude": 0
+        "longitude": 0,
+        "hub_name": "Receiver 2"
     }
 ```
 6. Change the username and password to your login at my.hivehome.com. If you add your latitude and longitude, the graph will show the outside temperature. You can find them by putting your postcode into [latlong.net](https://www.latlong.net/).
@@ -65,5 +66,5 @@ You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://loca
 
 ## Not working?
 
-This code looks for a node called "Receiver 2" in your Hive account. If you get no data, or can't set the temperature, you could try changing that to "Receiver 1" in cgi-bin/hive.py.
+This code looks for a node called "Receiver 2" in your Hive account. If you get an error, try changing that in cgi-bin/credentials.py.
 

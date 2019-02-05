@@ -16,6 +16,10 @@ with open('cgi-bin/credentials.json') as f:
 	j = json.load(f)
 	username = j['username']
 	password = j['password']
+	if 'hub_name' in j:
+		hub_name = j['hub_name']
+	else:
+		hub_name = 'Receiver 2' # default
 
 met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
 epoch = datetime.utcfromtimestamp(0)
@@ -82,12 +86,22 @@ def login():
 	return headers
 
 def get_id(headers):
-	r=requests.get(url+'/nodes',headers=headers)
-	nodes=r.json()['nodes']
-	for i in range(len(nodes)):
-		if nodes[i]['name'] == 'Receiver 2':
-			id=nodes[i]['id']
+	r = requests.get(url+'/nodes',headers=headers)
+	nodes = r.json()['nodes']
+	id = None
+	for node in nodes:
+		if node['name'] == hub_name:
+			id = node['id']
 	return id
+
+def get_node_names(headers):
+	r = requests.get(url+'/nodes',headers=headers)
+	nodes = r.json()['nodes']
+	node_names = []
+	for node in nodes:
+		if not node['name'].startswith('http'):
+			node_names.append(str(node['name']))
+	return node_names
 
 def get_temps(headers, id, startdate, enddate=None):
 	start = str(int(unix_time_millis(startdate)))
@@ -113,11 +127,27 @@ def get_current_temps(headers, id):
 	currentTarget = round(targetTemps[sorted(targetTemps.keys())[-1]],1)
 	return currentTemp, currentTarget
 
+def get_schedule(headers):
+	r = requests.get(url+'/nodes',headers=headers)
+	nodes = r.json()['nodes']
+	for node in nodes:
+		if node['name'] == hub_name:
+			break
+	schedule = node['attributes']['schedule']['displayValue']
+	return schedule
+
 headers = login()
 id = get_id(headers)
 
 print "Content-type:text/html"
 print
+
+if id is None:
+	print "Could not find a device called "+hub_name+".<br />"
+	print "Here are the devices I could find:<br />"
+	print str(get_node_names(headers))
+	print "<br />Edit cgi-bin/credentials.json ad put one of them in the value for 'hub_name'."
+	sys.exit()
 
 fs = cgi.FieldStorage()
 
