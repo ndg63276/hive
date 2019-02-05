@@ -146,7 +146,7 @@ if id is None:
 	print "Could not find a device called "+hub_name+".<br />"
 	print "Here are the devices I could find:<br />"
 	print str(get_node_names(headers))
-	print "<br />Edit cgi-bin/credentials.json ad put one of them in the value for 'hub_name'."
+	print "<br />Edit cgi-bin/credentials.json and put one of them in the value for 'hub_name'."
 	sys.exit()
 
 fs = cgi.FieldStorage()
