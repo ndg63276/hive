@@ -12,14 +12,18 @@ import pytz
 from haversine import haversine
 url = 'https://api-prod.bgchprod.info:443/omnia'
 
-with open('cgi-bin/credentials.json') as f:
-	j = json.load(f)
-	username = j['username']
-	password = j['password']
-	if 'hub_name' in j:
-		hub_name = j['hub_name']
-	else:
-		hub_name = 'Receiver 2' # default
+def get_credentials():
+	if not os.path.isfile('cgi-bin/credentials.json'):
+		return None, None, None
+	with open('cgi-bin/credentials.json') as f:
+		j = json.load(f)
+		username = j['username']
+		password = j['password']
+		if 'hub_name' in j:
+			hub_name = j['hub_name']
+		else:
+			hub_name = 'Receiver 2' # default
+	return username, password, hub_name
 
 met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
 epoch = datetime.utcfromtimestamp(0)
@@ -77,7 +81,7 @@ def get_weather(startdate, enddate):
 				to_return[unix_time_millis(dt_time)] = the_temp
 	return to_return
 
-def login():
+def login(username, password, hub_name):
 	headers = {'Content-Type': 'application/vnd.alertme.zoo-6.1+json', 'Accept': 'application/vnd.alertme.zoo-6.1+json', 'X-Omnia-Client': 'Hive Web Dashboard'}
 	payload = {'sessions':[{'username':username,'password':password,'caller':'WEB'}]}
 	data = json.dumps(payload)
@@ -136,12 +140,19 @@ def get_schedule(headers):
 	schedule = node['attributes']['schedule']['displayValue']
 	return schedule
 
-
-headers = login()
-id = get_id(headers)
-
 print "Content-type:text/html"
 print
+
+username, password, hub_name = get_credentials()
+if username is None:
+	print "No credentials.json file found.<br />"
+	print "Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json<br />"
+	print "Then edit it to include your hive username and password."
+	sys.exit()
+
+
+headers = login(username, password, hub_name)
+id = get_id(headers)
 
 if id is None:
 	print "Could not find a device called "+hub_name+".<br />"
