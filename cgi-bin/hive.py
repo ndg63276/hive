@@ -116,7 +116,7 @@ def get_temps(headers, id, startdate, enddate=None):
 	return temps, targetTemps
 
 def get_current_temps(headers, id):
-	startdate = datetime.now()-timedelta(minutes=60)
+	startdate = datetime.now()-timedelta(days=1)
 	start = str(int(unix_time_millis(startdate)))
 	end = str(int(time.time()*1000))
 	params={'start':start, 'end':end, 'timeUnit':'SECONDS', 'rate':'10', 'operation':'MAX'}
@@ -135,6 +135,7 @@ def get_schedule(headers):
 			break
 	schedule = node['attributes']['schedule']['displayValue']
 	return schedule
+
 
 headers = login()
 id = get_id(headers)
@@ -228,6 +229,7 @@ if startdate.day == enddate.day:
 else:
 	xformat="DD-MM-YY HH:mm:ss"
 
+
 print """
 <html>
 <head>  
@@ -237,47 +239,22 @@ print """
 <meta http-equiv="Expires" content="0" />
 <title>My Hive Temperatures</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script>
 var pagelink=location.origin+location.pathname;
-window.onload = function () {
-
-var chart = new CanvasJS.Chart("chartContainer", {
-	animationEnabled: true,
-	zoomEnabled: true,
-	zoomType: "xy",
-	legend: {
-		cursor: "pointer",
-	},
-	axisY :{
-		includeZero:false,
-		titleFontSize: 20,
-		titleMaxWidth: 450
-	},
-	data: data
-});
-
-chart.render();
 """
 print "var currentTemp="+str(currentTemp)+";"
 print "var currentTargetRaw="+str(currentTarget)+";"
 print """
 var currentTarget=currentTargetRaw.toFixed(1)
-document.getElementById('currentTempId').innerHTML=currentTemp+'&deg;C'
-document.getElementById('currentTargetId').innerHTML=currentTarget+'&deg;C'
-document.getElementById('tempToSet').value=currentTarget
-document.getElementById('boostTempToSet').value=currentTarget
 
-}
-
-var data = [];
+var dataSets = [];
 var dataPoints = [];
 var dataPoints2 = [];
 var dataPoints3 = [];
 """
-
-print "var dataSeries = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Actual', xValueFormatString: '"+xformat+"' };"
-print "var dataSeries2 = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Setpoint', xValueFormatString: '"+xformat+"' };"
-print "var dataSeries3 = { type: 'line', xValueType: 'dateTime', showInLegend: true, legendText: 'Weather', xValueFormatString: '"+xformat+"' };"
+print "var tooltipFormat = '"+xformat +"';"
 
 for i in sorted(temps.keys()):
 	print "dataPoints.push({x: "+str(i)+", y: "+str(temps[i])+" });"
@@ -288,18 +265,56 @@ for i in sorted(targetTemps.keys()):
 for i in sorted(weather.keys()):
 	print "dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });"
 
-print """
-dataSeries.dataPoints = dataPoints;
-dataSeries2.dataPoints = dataPoints2;
-dataSeries3.dataPoints = dataPoints3;
-data.push(dataSeries);
-data.push(dataSeries2);
-data.push(dataSeries3);
-"""
+
+print "dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints})"
+print "dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Setpoint', fill:false, steppedLine:true, data:dataPoints2})"
+print "dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3})"
 print "var headers="+str(headers).replace("u'","'")+";"
 print "var nodesurl='"+url+"/nodes/"+id+"';"
 
 print """
+
+var config = {
+	type: 'line',
+	data: { datasets: dataSets },
+	options: {
+		title: { display: false },
+		legend: {
+			display: true,
+			position: 'bottom',
+			labels: { fontSize: 18, usePointStyle: true }
+		},
+		scales: {
+			xAxes: [{
+				type: 'time',
+				time: { tooltipFormat: tooltipFormat },
+				display: true,
+				scaleLabel: { display: false }
+			}],
+			yAxes: [{
+				id: 'left-y-axis',
+				display: true,
+				position: 'left',
+				type: 'linear',
+				scaleLabel: {
+					display: false
+				}
+			}]
+		}
+	}
+};
+"""
+print """
+window.onload = function() {
+	var ctx = document.getElementById('myChart').getContext('2d');
+	var myChart = new Chart(ctx, config);
+	document.getElementById('currentTempId').innerHTML=currentTemp+'&deg;C'
+	document.getElementById('currentTargetId').innerHTML=currentTarget+'&deg;C'
+	document.getElementById('tempToSet').value=currentTarget
+	document.getElementById('boostTempToSet').value=currentTarget
+};
+
+
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
 	console.log('set '+temp);
@@ -332,7 +347,6 @@ function boostTemp() {
 	location.reload();
 }
 </script>
-<script src="../canvasjs.min.js"></script>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
@@ -344,7 +358,8 @@ function boostTemp() {
 <td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
 </tr></table>
 
-<div id="chartContainer" style="height: 800px; max-width: 1500px; margin: 0px auto;"></div>
+<canvas id="myChart" width="800" height="400"></canvas>
+
 <br /><br /><center><form>
 <input type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
 <input type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
