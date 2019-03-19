@@ -12,17 +12,23 @@ import pytz
 from haversine import haversine
 url = 'https://api-prod.bgchprod.info:443/omnia'
 
+def get_json():
+        if not os.path.isfile('cgi-bin/credentials.json'):
+                return None
+        with open('cgi-bin/credentials.json') as f:
+                j = json.load(f)
+	return j
+
 def get_credentials():
-	if not os.path.isfile('cgi-bin/credentials.json'):
+	j = get_json()
+	if j is None:
 		return None, None, None
-	with open('cgi-bin/credentials.json') as f:
-		j = json.load(f)
-		username = j['username']
-		password = j['password']
-		if 'hub_name' in j:
-			hub_name = j['hub_name']
-		else:
-			hub_name = 'Receiver 2' # default
+	username = j['username']
+	password = j['password']
+	if 'hub_name' in j:
+		hub_name = j['hub_name']
+	else:
+		hub_name = 'Receiver 2' # default
 	return username, password, hub_name
 
 met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
@@ -33,15 +39,15 @@ def unix_time_millis(dt):
 	return 1000 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 def get_location_id():
-	try:
-		return j['location_id']
-	except:
-		pass
-	try:
-		latitude = j['latitude']
-		longitude = j['longitude']
-	except:
+	j = get_json()
+	if j is None:
 		return None
+	if 'location_id' in j:
+		return j['location_id']
+	if 'latitude' not in j or 'longitude' not in j:
+		return None
+	latitude = j['latitude']
+	longitude = j['longitude']
 	if latitude == 0 and longitude == 0:
 		return None
 	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key='+met_office_key
