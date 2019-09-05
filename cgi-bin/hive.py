@@ -13,10 +13,10 @@ from haversine import haversine
 url = 'https://api-prod.bgchprod.info:443/omnia'
 
 def get_json():
-        if not os.path.isfile('cgi-bin/credentials.json'):
-                return None
-        with open('cgi-bin/credentials.json') as f:
-                j = json.load(f)
+	if not os.path.isfile('cgi-bin/credentials.json'):
+		return None
+	with open('cgi-bin/credentials.json') as f:
+		j = json.load(f)
 	return j
 
 def get_credentials():
@@ -80,7 +80,7 @@ def get_weather(startdate, enddate):
 		else:
 			hours = [day['Rep']]
 		for hour in hours:
-			the_time = str(int(hour['$'])/60)
+			the_time = str(int((int(hour['$'])/60)))
 			dt_time = datetime.strptime(the_date+the_time,'%Y-%m-%dZ%H')
 			the_temp = hour['T']
 			if dt_time > startdate and dt_time < enddate:
@@ -95,7 +95,7 @@ def login(username, password, hub_name):
 	headers['X-Omnia-Access-Token'] = r.json()['sessions'][0]['sessionId']
 	return headers
 
-def get_id(headers):
+def get_id(headers, hub_name):
 	r = requests.get(url+'/nodes',headers=headers)
 	nodes = r.json()['nodes']
 	id = None
@@ -146,110 +146,114 @@ def get_schedule(headers):
 	schedule = node['attributes']['schedule']['displayValue']
 	return schedule
 
-print "Content-type:text/html"
-print
 
-username, password, hub_name = get_credentials()
-if username is None:
-	print "No credentials.json file found.<br />"
-	print "Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json<br />"
-	print "Then edit it to include your hive username and password."
-	sys.exit()
+if __name__ == "__main__":
 
+	print("Content-type:text/html")
+	print()
 
-headers = login(username, password, hub_name)
-id = get_id(headers)
-
-if id is None:
-	print "Could not find a device called "+hub_name+".<br />"
-	print "Here are the devices I could find:<br />"
-	print str(get_node_names(headers))
-	print "<br />Edit cgi-bin/credentials.json and put one of them in the value for 'hub_name'."
-	sys.exit()
-
-fs = cgi.FieldStorage()
-
-startdate = datetime.now()-timedelta(days=1)
-if fs.has_key('start'):
-	start = fs.getvalue('start')
-	if start.startswith('20'):
-		startyear=int(start[0:4])
-		startmonth=int(start[4:6])
-		startday=int(start[6:8])
-		starthour = startmin = startsec = 0
-		if len(start)>8:
-			starthour = int(start[8:10])
-			if len(start)>10:
-				startmin = int(start[10:12])
-				if len(start)>12:
-					startsec = int(start[12:14])
-		startdate = datetime(startyear, startmonth, startday, starthour, startmin, startsec)
-	match = re.match(r'-([0-9]+)(year|month|week|day|hour|min|sec)', start, re.I)
-	if match:
-		if 'year' in match.group(2):
-			startdate = datetime.now() - timedelta(days=int(match.group(1))*365)
-		if 'month' in match.group(2):
-			startdate = datetime.now() - timedelta(days=int(match.group(1))*31)
-		if 'week' in match.group(2):
-			startdate = datetime.now() - timedelta(weeks=int(match.group(1)))
-		if 'day' in match.group(2):
-			startdate = datetime.now() - timedelta(days=int(match.group(1)))
-		if 'hour' in match.group(2):
-			startdate = datetime.now() - timedelta(hours=int(match.group(1)))
-		if 'min' in match.group(2):
-			startdate = datetime.now() - timedelta(minutes=int(match.group(1)))
-		if 'sec' in match.group(2):
-			startdate = datetime.now() - timedelta(seconds=int(match.group(1)))
+	username, password, hub_name = get_credentials()
+	if username is None:
+		print("No credentials.json file found.<br />")
+		print("Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json<br />")
+		print("Then edit it to include your hive username and password.")
+		sys.exit()
 
 
-enddate = datetime.now()
-if fs.has_key('end'):
-	end = fs.getvalue('end')
-	if end.startswith('20'):
-		endyear=int(end[0:4])
-		endmonth=int(end[4:6])
-		endday=int(end[6:8])
-		endhour = endmin = endsec = 0
-		if len(end)>8:
-			endhour = int(end[8:10])
-			if len(end)>10:
-				endmin = int(end[10:12])
-				if len(end)>12:
-					endsec = int(end[12:14])
-		enddate = datetime(endyear, endmonth, endday, endhour, endmin, endsec)
-	match = re.match(r'-([0-9]+)(year|month|week|day|hour|min|sec)', end, re.I)
-	if match:
-		if 'year' in match.group(2):
-			enddate = datetime.now() - timedelta(days=int(match.group(1))*365)
-		if 'month' in match.group(2):
-			enddate = datetime.now() - timedelta(days=int(match.group(1))*31)
-		if 'week' in match.group(2):
-			enddate = datetime.now() - timedelta(weeks=int(match.group(1)))
-		if 'day' in match.group(2):
-			enddate = datetime.now() - timedelta(days=int(match.group(1)))
-		if 'hour' in match.group(2):
-			enddate = datetime.now() - timedelta(hours=int(match.group(1)))
-		if 'min' in match.group(2):
-			enddate = datetime.now() - timedelta(minutes=int(match.group(1)))
-		if 'sec' in match.group(2):
-			enddate = datetime.now() - timedelta(seconds=int(match.group(1)))
+	headers = login(username, password, hub_name)
+	id = get_id(headers, hub_name)
 
-#tz = pytz.timezone('Europe/London')
-#startdate=tz.localize(startdate).astimezone(pytz.utc)
-#enddate=tz.localize(enddate).astimezone(pytz.utc)
+	if id is None:
+		print("Could not find a device called "+hub_name+".<br />")
+		print("Here are the devices I could find:<br />")
+		print(str(get_node_names(headers)))
+		print("<br />Edit cgi-bin/credentials.json and put one of them in the value for 'hub_name'.")
+		sys.exit()
 
-temps, targetTemps = get_temps(headers, id, startdate, enddate)
-currentTemp, currentTarget = get_current_temps(headers, id)
-weather = get_weather(startdate, enddate)
-if startdate.day == enddate.day:
-	xformat="HH:mm:ss"
-else:
-	xformat="DD-MM-YY HH:mm:ss"
+	fs = cgi.FieldStorage()
 
 
-print """
+	startdate = datetime.now()-timedelta(days=1)
+	if 'start' in fs:
+		start = fs.getvalue('start')
+		if start.startswith('20'):
+			startyear=int(start[0:4])
+			startmonth=int(start[4:6])
+			startday=int(start[6:8])
+			starthour = startmin = startsec = 0
+			if len(start)>8:
+				starthour = int(start[8:10])
+				if len(start)>10:
+					startmin = int(start[10:12])
+					if len(start)>12:
+						startsec = int(start[12:14])
+			startdate = datetime(startyear, startmonth, startday, starthour, startmin, startsec)
+		match = re.match(r'-([0-9]+)(year|month|week|day|hour|min|sec)', start, re.I)
+		if match:
+			if 'year' in match.group(2):
+				startdate = datetime.now() - timedelta(days=int(match.group(1))*365)
+			if 'month' in match.group(2):
+				startdate = datetime.now() - timedelta(days=int(match.group(1))*31)
+			if 'week' in match.group(2):
+				startdate = datetime.now() - timedelta(weeks=int(match.group(1)))
+			if 'day' in match.group(2):
+				startdate = datetime.now() - timedelta(days=int(match.group(1)))
+			if 'hour' in match.group(2):
+				startdate = datetime.now() - timedelta(hours=int(match.group(1)))
+			if 'min' in match.group(2):
+				startdate = datetime.now() - timedelta(minutes=int(match.group(1)))
+			if 'sec' in match.group(2):
+				startdate = datetime.now() - timedelta(seconds=int(match.group(1)))
+
+
+	enddate = datetime.now()
+	if 'end' in fs:
+		end = fs.getvalue('end')
+		if end.startswith('20'):
+			endyear=int(end[0:4])
+			endmonth=int(end[4:6])
+			endday=int(end[6:8])
+			endhour = endmin = endsec = 0
+			if len(end)>8:
+				endhour = int(end[8:10])
+				if len(end)>10:
+					endmin = int(end[10:12])
+					if len(end)>12:
+						endsec = int(end[12:14])
+			enddate = datetime(endyear, endmonth, endday, endhour, endmin, endsec)
+		match = re.match(r'-([0-9]+)(year|month|week|day|hour|min|sec)', end, re.I)
+		if match:
+			if 'year' in match.group(2):
+				enddate = datetime.now() - timedelta(days=int(match.group(1))*365)
+			if 'month' in match.group(2):
+				enddate = datetime.now() - timedelta(days=int(match.group(1))*31)
+			if 'week' in match.group(2):
+				enddate = datetime.now() - timedelta(weeks=int(match.group(1)))
+			if 'day' in match.group(2):
+				enddate = datetime.now() - timedelta(days=int(match.group(1)))
+			if 'hour' in match.group(2):
+				enddate = datetime.now() - timedelta(hours=int(match.group(1)))
+			if 'min' in match.group(2):
+				enddate = datetime.now() - timedelta(minutes=int(match.group(1)))
+			if 'sec' in match.group(2):
+				enddate = datetime.now() - timedelta(seconds=int(match.group(1)))
+
+	#tz = pytz.timezone('Europe/London')
+	#startdate=tz.localize(startdate).astimezone(pytz.utc)
+	#enddate=tz.localize(enddate).astimezone(pytz.utc)
+
+	temps, targetTemps = get_temps(headers, id, startdate, enddate)
+	currentTemp, currentTarget = get_current_temps(headers, id)
+	weather = get_weather(startdate, enddate)
+	if startdate.day == enddate.day:
+		xformat="HH:mm:ss"
+	else:
+		xformat="DD-MM-YY HH:mm:ss"
+
+
+	print("""
 <html>
-<head>  
+<head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
@@ -260,36 +264,36 @@ print """
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script>
 var pagelink=location.origin+location.pathname;
-"""
-print "var currentTemp="+str(currentTemp)+";"
-print "var currentTargetRaw="+str(currentTarget)+";"
-print """
+""")
+	print("var currentTemp="+str(currentTemp)+";")
+	print("var currentTargetRaw="+str(currentTarget)+";")
+	print("""
 var currentTarget=currentTargetRaw.toFixed(1)
 
 var dataSets = [];
 var dataPoints = [];
 var dataPoints2 = [];
 var dataPoints3 = [];
-"""
-print "var tooltipFormat = '"+xformat +"';"
+""")
+	print("var tooltipFormat = '"+xformat +"';")
 
-for i in sorted(temps.keys()):
-	print "dataPoints.push({x: "+str(i)+", y: "+str(temps[i])+" });"
+	for i in sorted(temps.keys()):
+		print("dataPoints.push({x: "+str(i)+", y: "+str(temps[i])+" });")
 
-for i in sorted(targetTemps.keys()):
-	print "dataPoints2.push({x: "+str(i)+", y: "+str(targetTemps[i])+" });"
+	for i in sorted(targetTemps.keys()):
+		print("dataPoints2.push({x: "+str(i)+", y: "+str(targetTemps[i])+" });")
 
-for i in sorted(weather.keys()):
-	print "dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });"
+	for i in sorted(weather.keys()):
+		print("dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });")
 
 
-print "dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints})"
-print "dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Setpoint', fill:false, steppedLine:true, data:dataPoints2})"
-print "dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3})"
-print "var headers="+str(headers).replace("u'","'")+";"
-print "var nodesurl='"+url+"/nodes/"+id+"';"
+	print("dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints})")
+	print("dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Setpoint', fill:false, steppedLine:true, data:dataPoints2})")
+	print("dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3})")
+	print("var headers="+str(headers).replace("u'","'")+";")
+	print("var nodesurl='"+url+"/nodes/"+id+"';")
 
-print """
+	print("""
 
 var config = {
 	type: 'line',
@@ -320,8 +324,7 @@ var config = {
 		}
 	}
 };
-"""
-print """
+
 window.onload = function() {
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
@@ -385,7 +388,6 @@ function boostTemp() {
 <input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>
 
 </form></center><br />
-
 </body>
 </html>
-"""
+""")
