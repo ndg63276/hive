@@ -25,11 +25,7 @@ def get_credentials():
 		return None, None, None
 	username = j['username']
 	password = j['password']
-	if 'hub_name' in j:
-		hub_name = j['hub_name']
-	else:
-		hub_name = 'Receiver 2' # default
-	return username, password, hub_name
+	return username, password
 
 met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
 epoch = datetime.utcfromtimestamp(0)
@@ -87,7 +83,7 @@ def get_weather(startdate, enddate):
 				to_return[unix_time_millis(dt_time)] = the_temp
 	return to_return
 
-def login(username, password, hub_name):
+def login(username, password):
 	headers = {'Content-Type': 'application/vnd.alertme.zoo-6.1+json', 'Accept': 'application/vnd.alertme.zoo-6.1+json', 'X-Omnia-Client': 'Hive Web Dashboard'}
 	payload = {'sessions':[{'username':username,'password':password,'caller':'WEB'}]}
 	data = json.dumps(payload)
@@ -109,9 +105,17 @@ def get_node_names(headers):
 	nodes = r.json()['nodes']
 	node_names = []
 	for node in nodes:
-		if not node['name'].startswith('http'):
+		if not node['name'].startswith('http') and 'Get a notification' not in node['name']:
 			node_names.append(str(node['name']))
 	return node_names
+
+def get_hub_name(headers):
+	node_names = get_node_names(headers)
+	for hub_name in node_names:
+		id = get_id(headers, hub_name)
+		currentTemp, currentTarge = get_current_temps(headers, id)
+		if currentTemp is not None:
+			return hub_name
 
 def get_temps(headers, id, startdate, enddate=None):
 	start = str(int(unix_time_millis(startdate)))
@@ -131,13 +135,16 @@ def get_current_temps(headers, id):
 	end = str(int(time.time()*1000))
 	params={'start':start, 'end':end, 'timeUnit':'SECONDS', 'rate':'10', 'operation':'MAX'}
 	r=requests.get(url+'/channels/temperature@'+id+',targetTemperature@'+id, headers=headers, params=params)
+	if 'errors' in r.json():
+		return None,None
 	temps=r.json()['channels'][0]['values']
 	targetTemps = r.json()['channels'][1]['values']
 	currentTemp = round(temps[sorted(temps.keys())[-1]],2)
 	currentTarget = round(targetTemps[sorted(targetTemps.keys())[-1]],1)
 	return currentTemp, currentTarget
 
-def get_schedule(headers):
+
+def get_schedule(headers, hub_name):
 	r = requests.get(url+'/nodes',headers=headers)
 	nodes = r.json()['nodes']
 	for node in nodes:
@@ -152,7 +159,7 @@ if __name__ == "__main__":
 	print("Content-type:text/html")
 	print()
 
-	username, password, hub_name = get_credentials()
+	username, password = get_credentials()
 	if username is None:
 		print("No credentials.json file found.<br />")
 		print("Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json<br />")
@@ -160,7 +167,8 @@ if __name__ == "__main__":
 		sys.exit()
 
 
-	headers = login(username, password, hub_name)
+	headers = login(username, password)
+	hub_name = get_hub_name(headers)
 	id = get_id(headers, hub_name)
 
 	if id is None:

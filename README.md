@@ -30,7 +30,6 @@ You should get a window like this:
         "password": "abc123",
         "latitude": 0,
         "longitude": 0,
-        "hub_name": "Receiver 2"
     }
 ```
 6. Change the username and password to your login at my.hivehome.com. If you add your latitude and longitude, the graph will show the outside temperature. You can find them by putting your postcode into [latlong.net](https://www.latlong.net/).
