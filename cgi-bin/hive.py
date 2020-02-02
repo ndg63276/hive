@@ -13,16 +13,19 @@ from haversine import haversine
 url = 'https://api-prod.bgchprod.info:443/omnia'
 
 def get_json():
-	if not os.path.isfile('cgi-bin/credentials.json'):
-		return None
-	with open('cgi-bin/credentials.json') as f:
+	cred_path = 'cgi-bin/credentials.json'
+	if not os.path.isfile(cred_path):
+		cred_path = 'credentials.json'
+		if not os.path.isfile(cred_path):
+			return None
+	with open(cred_path) as f:
 		j = json.load(f)
 	return j
 
 def get_credentials():
 	j = get_json()
 	if j is None:
-		return None, None, None
+		return None, None
 	username = j['username']
 	password = j['password']
 	return username, password
@@ -83,7 +86,9 @@ def get_weather(startdate, enddate):
 				to_return[unix_time_millis(dt_time)] = the_temp
 	return to_return
 
-def login(username, password):
+def login(username=None, password=None):
+	if username is None:
+		username, password = get_credentials()
 	headers = {'Content-Type': 'application/vnd.alertme.zoo-6.1+json', 'Accept': 'application/vnd.alertme.zoo-6.1+json', 'X-Omnia-Client': 'Hive Web Dashboard'}
 	payload = {'sessions':[{'username':username,'password':password,'caller':'WEB'}]}
 	data = json.dumps(payload)
