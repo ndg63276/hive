@@ -10,7 +10,8 @@ import requests
 import json
 import pytz
 from haversine import haversine
-url = 'https://api-prod.bgchprod.info:443/omnia'
+url = 'https://beekeeper.hivehome.com/1.0'
+
 
 def get_json():
 	cred_path = 'cgi-bin/credentials.json'
@@ -22,6 +23,7 @@ def get_json():
 		j = json.load(f)
 	return j
 
+
 def get_credentials():
 	j = get_json()
 	if j is None:
@@ -30,12 +32,15 @@ def get_credentials():
 	password = j['password']
 	return username, password
 
+
 met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
 epoch = datetime.utcfromtimestamp(0)
+
 
 def unix_time_millis(dt):
 	td = (dt - epoch)
 	return 1000 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
 
 def get_location_id():
 	j = get_json()
@@ -64,6 +69,7 @@ def get_location_id():
 		json.dump(j,f, sort_keys=True, indent=4)
 	return min_dist_id
 
+
 def get_weather(startdate, enddate):
 	to_return = {}
 	location_id = get_location_id()
@@ -86,41 +92,40 @@ def get_weather(startdate, enddate):
 				to_return[unix_time_millis(dt_time)] = the_temp
 	return to_return
 
+
 def login(username=None, password=None):
 	if username is None:
 		username, password = get_credentials()
-	headers = {'Content-Type': 'application/vnd.alertme.zoo-6.1+json', 'Accept': 'application/vnd.alertme.zoo-6.1+json', 'X-Omnia-Client': 'Hive Web Dashboard'}
-	payload = {'sessions':[{'username':username,'password':password,'caller':'WEB'}]}
+	headers = {"Content-Type": "application/json", "Accept": "application/json"}
+	payload = {'username': username, 'password': password}
 	data = json.dumps(payload)
-	r = requests.post(url+'/auth/sessions', headers=headers, data=data)
-	headers['X-Omnia-Access-Token'] = r.json()['sessions'][0]['sessionId']
+	r = requests.post(url+'/global/login', headers=headers, data=data)
+	headers['authorization'] = r.json()['token']
 	return headers
 
-def get_id(headers, hub_name):
-	r = requests.get(url+'/nodes',headers=headers)
-	nodes = r.json()['nodes']
+
+def get_id(headers, hub_name='heating'):
+	r = requests.get(url+'/products', headers=headers)
+	nodes = r.json()
 	id = None
 	for node in nodes:
-		if node['name'] == hub_name:
+		if node['type'] == hub_name:
 			id = node['id']
 	return id
 
+
 def get_node_names(headers):
-	r = requests.get(url+'/nodes',headers=headers)
-	nodes = r.json()['nodes']
+	r = requests.get(url+'/products', headers=headers)
+	nodes = r.json()
 	node_names = []
 	for node in nodes:
-		if not node['name'].startswith('http') and 'Get a notification' not in node['name']:
-			node_names.append(str(node['name']))
+		node_names.append(str(node['type']))
 	return node_names
 
+
 def get_hub_name(headers):
-	node_names = get_node_names(headers)
-	for hub_name in node_names:
-		id = get_id(headers, hub_name)
-		currentTemp, currentTarge = get_current_temps(headers, id)
-		if currentTemp is not None:
-			return hub_name
+	return 'heating'
+
 
 def get_temps(headers, id, startdate, enddate=None):
 	start = str(int(unix_time_millis(startdate)))
@@ -128,34 +133,28 @@ def get_temps(headers, id, startdate, enddate=None):
 		end = str(int(time.time()*1000))
 	else:
 		end = str(int(unix_time_millis(enddate)))
-	params={'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'}
-	r=requests.get(url+'/channels/temperature@'+id+',targetTemperature@'+id, headers=headers, params=params)
-	temps=r.json()['channels'][0]['values']
-	targetTemps = r.json()['channels'][1]['values']
-	return temps, targetTemps
+	params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'}
+	r = requests.get(url+'/history/heating/'+id, headers=headers, params=params)
+	temps = sorted(r.json()['data'], key=lambda k: k['date'])
+	return temps
 
-def get_current_temps(headers, id):
-	startdate = datetime.now()-timedelta(days=1)
-	start = str(int(unix_time_millis(startdate)))
-	end = str(int(time.time()*1000))
-	params={'start':start, 'end':end, 'timeUnit':'SECONDS', 'rate':'10', 'operation':'MAX'}
-	r=requests.get(url+'/channels/temperature@'+id+',targetTemperature@'+id, headers=headers, params=params)
-	if 'errors' in r.json():
-		return None,None
-	temps=r.json()['channels'][0]['values']
-	targetTemps = r.json()['channels'][1]['values']
-	currentTemp = round(temps[sorted(temps.keys())[-1]],2)
-	currentTarget = round(targetTemps[sorted(targetTemps.keys())[-1]],1)
+
+def get_current_temps(headers, hub_name='heating'):
+	r = requests.get(url+'/products', headers=headers)
+	for device in r.json():
+		if device['type'] == hub_name:
+			break
+	currentTemp = device['props']['temperature']
+	currentTarget = device['state']['target']
 	return currentTemp, currentTarget
 
 
-def get_schedule(headers, hub_name):
-	r = requests.get(url+'/nodes',headers=headers)
-	nodes = r.json()['nodes']
-	for node in nodes:
-		if node['name'] == hub_name:
+def get_schedule(headers, hub_name='heating'):
+	r = requests.get(url+'/products', headers=headers)
+	for device in r.json():
+		if device['type'] == hub_name:
 			break
-	schedule = node['attributes']['schedule']['displayValue']
+	schedule = device['state']['schedule']
 	return schedule
 
 
@@ -255,7 +254,7 @@ if __name__ == "__main__":
 	#startdate=tz.localize(startdate).astimezone(pytz.utc)
 	#enddate=tz.localize(enddate).astimezone(pytz.utc)
 
-	temps, targetTemps = get_temps(headers, id, startdate, enddate)
+	temps = get_temps(headers, id, startdate, enddate)
 	currentTemp, currentTarget = get_current_temps(headers, id)
 	weather = get_weather(startdate, enddate)
 	if startdate.day == enddate.day:
@@ -290,21 +289,17 @@ var dataPoints3 = [];
 """)
 	print("var tooltipFormat = '"+xformat +"';")
 
-	for i in sorted(temps.keys()):
-		print("dataPoints.push({x: "+str(i)+", y: "+str(temps[i])+" });")
-
-	for i in sorted(targetTemps.keys()):
-		print("dataPoints2.push({x: "+str(i)+", y: "+str(targetTemps[i])+" });")
+	for i in temps:
+		print("dataPoints.push({x: "+str(i['date'])+", y: "+str(i['temperature'])+" });")
 
 	for i in sorted(weather.keys()):
 		print("dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });")
 
 
 	print("dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints})")
-	print("dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Setpoint', fill:false, steppedLine:true, data:dataPoints2})")
 	print("dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3})")
 	print("var headers="+str(headers).replace("u'","'")+";")
-	print("var nodesurl='"+url+"/nodes/"+id+"';")
+	print("var nodesurl='"+url+"/nodes/heating/"+id+"';")
 
 	print("""
 
@@ -351,10 +346,10 @@ window.onload = function() {
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
 	console.log('set '+temp);
-	var data={'nodes': [{'attributes': {'targetHeatTemperature': {'targetValue': temp}}}]};
+	var data={'target': temp};
 	$.ajax({
 		url: nodesurl,
-		type: 'PUT',
+		type: 'POST',
 		headers: headers,
 		data: JSON.stringify(data),
 		success: function () {
@@ -363,14 +358,15 @@ function setTemp() {
 	});
 	location.reload();
 }
+
 function boostTemp() {
 	temp = document.getElementById("boostTempToSet").value;
 	time = document.getElementById("boostTime").value;
 	console.log('boost '+temp+' '+time);
-	var data={'nodes': [{'attributes': {'targetHeatTemperature': {'targetValue': temp}, 'activeHeatCoolMode': {'targetValue': 'BOOST'}, 'scheduleLockDuration': {'targetValue': time}}}]}; 
+	var data={'mode': 'BOOST', 'boost': time, 'target': temp}; 
 	$.ajax({
 		url: nodesurl,
-		type: 'PUT',
+		type: 'POST',
 		headers: headers,
 		data: JSON.stringify(data),
 		success: function () {
@@ -379,6 +375,7 @@ function boostTemp() {
 	});
 	location.reload();
 }
+
 </script>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
