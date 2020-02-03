@@ -141,11 +141,14 @@ def get_temps(headers, id, startdate, enddate=None):
 
 def get_current_temps(headers, hub_name='heating'):
 	r = requests.get(url+'/products', headers=headers)
+	heating_device = None
 	for device in r.json():
 		if device['type'] == hub_name:
-			break
-	currentTemp = device['props']['temperature']
-	currentTarget = device['state']['target']
+			heating_device = device
+	if heating_device is None:
+		return 0, 0
+	currentTemp = heating_device['props']['temperature']
+	currentTarget = heating_device['state']['target']
 	return currentTemp, currentTarget
 
 
@@ -255,7 +258,7 @@ if __name__ == "__main__":
 	#enddate=tz.localize(enddate).astimezone(pytz.utc)
 
 	temps = get_temps(headers, id, startdate, enddate)
-	currentTemp, currentTarget = get_current_temps(headers, id)
+	currentTemp, currentTarget = get_current_temps(headers)
 	weather = get_weather(startdate, enddate)
 	if startdate.day == enddate.day:
 		xformat="HH:mm:ss"
