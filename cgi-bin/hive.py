@@ -161,6 +161,12 @@ def get_schedule(headers, hub_name='heating'):
 	return schedule
 
 
+def set_schedule(headers, schedule, hub_name='heating'):
+	id = get_id(headers, hub_name)
+	payload={'schedule': schedule}
+	r = requests.post(url+'/nodes/heating/'+id, headers=headers, json=payload)
+
+
 if __name__ == "__main__":
 
 	print("Content-type:text/html")
