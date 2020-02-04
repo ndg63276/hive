@@ -21,7 +21,6 @@ var url = 'https://beekeeper.hivehome.com/1.0'
 
 
 function getSchedule(hub_name) {
-
 	$.ajax({
 		url: url+'/products',
 		type: 'GET',
@@ -36,6 +35,44 @@ function getSchedule(hub_name) {
 		}
 	});
 }
+
+function getProducts() {
+	return $.ajax({
+		url: url+'/products',
+		type: 'GET',
+		async: false,
+		headers: headers,
+	})
+}
+
+
+function sendSchedule(hub_name) {
+	var schedule = JSON.parse(document.getElementById("text-val").innerHTML);
+	var products = getProducts();
+	var json = JSON.parse(products.responseText);
+	var id = ''
+	for (device in json) {
+		if (json[device]['type'] == hub_name) {
+			id = json[device]['id'];	
+		}
+	}
+	console.log(id);
+	var data = JSON.stringify({'schedule': schedule});
+	console.log(data);
+	$.ajax({
+		url: url+'/nodes/heating/'+id,
+		type: 'POST',
+		headers: headers,
+		data: data,
+		success: function (json) {
+			console.log('success')
+		},
+		error: function () {
+			console.log('error')
+		}
+	})
+}
+
 
 function download() {
 	var date = new Date().toISOString().substr(0, 16);
@@ -59,7 +96,6 @@ function openfile(e) {
 
 	reader.onload = readerEvent => {
 		var content = readerEvent.target.result; // this is the content!
-		console.log( content );
 		document.getElementById("text-val").innerHTML = content;
 	}
 }
@@ -74,5 +110,9 @@ function openfile(e) {
 
 <button onclick="document.getElementById('file-input').click();">Load schedule from file</button>
 <input id="file-input" type="file" name="name" style="display: none;" onchange='openfile(this.files);'/>
+<br /><br />
+<button height=10 onclick='sendSchedule("heating");'>Send Heating Schedule</button>
+<button height=10 onclick='sendSchedule("hotwater");'>Send Hot Water Schedule</button>
+
 </html>
 """)
