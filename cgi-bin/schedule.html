@@ -1,0 +1,62 @@
+#!/usr/bin/python
+
+from hive import *
+
+headers = login()
+
+print("Content-type:text/html")
+print()
+print("""
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>My Hive Schedule</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+var headers="""+str(headers).replace("u'","'")+""";
+var url = 'https://beekeeper.hivehome.com/1.0'
+
+
+function getSchedule(hub_name) {
+
+	$.ajax({
+		url: url+'/products',
+		type: 'GET',
+		headers: headers,
+		success: function (json) {
+			for (device in json) {
+				if (json[device]['type'] == hub_name) {
+					console.log(JSON.stringify(json[device]['state']['schedule']))
+					document.getElementById("text-val").innerHTML = JSON.stringify(json[device]['state']['schedule']);
+				}
+			}
+		}
+	});
+}
+
+function download() {
+	var date = new Date().toISOString().substr(0, 16);
+	var text = document.getElementById("text-val").innerHTML;
+	var filename = "hive_schedule_"+date+".txt";
+	var element = document.createElement('a');
+	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	element.setAttribute('download', filename);
+	element.style.display = 'none';
+	document.body.appendChild(element);
+	element.click();
+	document.body.removeChild(element);
+}
+
+
+</script>
+</head><body>
+<button height=10 onclick='getSchedule("heating");'>Get Heating Schedule</button>
+<button height=10 onclick='getSchedule("hotwater");'>Get Hot Water Schedule</button>
+<br /><br />
+<div id="text-val"></div><br/>
+<input type="button" id="dwn-btn" value="Save schedule to file" onclick='download();'/>
+</html>
+""")
