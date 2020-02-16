@@ -40,7 +40,7 @@ function getSchedule() {
 function clearForm() {
 	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
 		for (num of Array(6).keys()) {
-			document.getElementById(day+num).innerHTML = ''
+			document.getElementById(day+num).value = '';
 		}
 	}
 }
@@ -61,7 +61,7 @@ function loadJsonIntoForm(json) {
 			start = JSON.stringify(json[day][num]['start']);
 			hours = ('00'+Math.floor(start/60)).slice(-2);
 			mins = ('00'+start%60).slice(-2);
-			el.innerHTML = '&nbsp;'+target+' @ '+hours+':'+mins+'&nbsp;';
+			el.value = target+' @ '+hours+':'+mins;
 		}
 	}
 }
@@ -80,7 +80,7 @@ function sendSchedule() {
 	var schedule = JSON.parse(document.getElementById("text-val").innerHTML);
 	var products = getProducts();
 	var json = JSON.parse(products.responseText);
-	var id = ''
+	var id = '';
 	for (device in json) {
 		if (json[device]['type'] == hub_name) {
 			id = json[device]['id'];	
@@ -107,7 +107,7 @@ function sendSchedule() {
 function download() {
 	var date = new Date().toISOString().substr(0, 16);
 	var text = document.getElementById("text-val").innerHTML;
-	var filename = "hive_schedule_"+date+".txt";
+	var filename = "hive_"+hub_name+"_schedule_"+date+".txt";
 	var element = document.createElement('a');
 	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
 	element.setAttribute('download', filename);
@@ -144,13 +144,13 @@ function switchHubName(newHubName) {
 <br /><br />
 <div id="text-val"></div><br/>
 <table border=0>
-<tr><td>Monday</td><td><div id="monday0"></div></td><td><div id="monday1"></td><td><div id="monday2"></td><td><div id="monday3"></td><td><div id="monday4"></td><td><div id="monday5"></td></tr>
-<tr><td>Tuesday</td><td><div id="tuesday0"></div></td><td><div id="tuesday1"></td><td><div id="tuesday2"></td><td><div id="tuesday3"></td><td><div id="tuesday4"></td><td><div id="tuesday5"></td></tr>
-<tr><td>Wednesday</td><td><div id="wednesday0"></div></td><td><div id="wednesday1"></td><td><div id="wednesday2"></td><td><div id="wednesday3"></td><td><div id="wednesday4"></td><td><div id="wednesday5"></td></tr>
-<tr><td>Thursday</td><td><div id="thursday0"></div></td><td><div id="thursday1"></td><td><div id="thursday2"></td><td><div id="thursday3"></td><td><div id="thursday4"></td><td><div id="thursday5"></td></tr>
-<tr><td>Friday</td><td><div id="friday0"></div></td><td><div id="friday1"></td><td><div id="friday2"></td><td><div id="friday3"></td><td><div id="friday4"></td><td><div id="friday5"></td></tr>
-<tr><td>Saturday</td><td><div id="saturday0"></div></td><td><div id="saturday1"></td><td><div id="saturday2"></td><td><div id="saturday3"></td><td><div id="saturday4"></td><td><div id="saturday5"></td></tr>
-<tr><td>Sunday</td><td><div id="sunday0"></div></td><td><div id="sunday1"></td><td><div id="sunday2"></td><td><div id="sunday3"></td><td><div id="sunday4"></td><td><div id="sunday5"></td></tr>
+<tr><td>Monday</td><td><input size=10 id="monday0"></td><td><input size=10 id="monday1"></td><td><input size=10 id="monday2"></td><td><input size=10 id="monday3"></td><td><input size=10 id="monday4"></td><td><input size=10 id="monday5"></td></tr>
+<tr><td>Tuesday</td><td><input size=10 id="tuesday0"></input size=10></td><td><input size=10 id="tuesday1"></td><td><input size=10 id="tuesday2"></td><td><input size=10 id="tuesday3"></td><td><input size=10 id="tuesday4"></td><td><input size=10 id="tuesday5"></td></tr>
+<tr><td>Wednesday</td><td><input size=10 id="wednesday0"></input size=10></td><td><input size=10 id="wednesday1"></td><td><input size=10 id="wednesday2"></td><td><input size=10 id="wednesday3"></td><td><input size=10 id="wednesday4"></td><td><input size=10 id="wednesday5"></td></tr>
+<tr><td>Thursday</td><td><input size=10 id="thursday0"></input size=10></td><td><input size=10 id="thursday1"></td><td><input size=10 id="thursday2"></td><td><input size=10 id="thursday3"></td><td><input size=10 id="thursday4"></td><td><input size=10 id="thursday5"></td></tr>
+<tr><td>Friday</td><td><input size=10 id="friday0"></input size=10></td><td><input size=10 id="friday1"></td><td><input size=10 id="friday2"></td><td><input size=10 id="friday3"></td><td><input size=10 id="friday4"></td><td><input size=10 id="friday5"></td></tr>
+<tr><td>Saturday</td><td><input size=10 id="saturday0"></input size=10></td><td><input size=10 id="saturday1"></td><td><input size=10 id="saturday2"></td><td><input size=10 id="saturday3"></td><td><input size=10 id="saturday4"></td><td><input size=10 id="saturday5"></td></tr>
+<tr><td>Sunday</td><td><input size=10 id="sunday0"></input size=10></td><td><input size=10 id="sunday1"></td><td><input size=10 id="sunday2"></td><td><input size=10 id="sunday3"></td><td><input size=10 id="sunday4"></td><td><input size=10 id="sunday5"></td></tr>
 </table><br /><br />
 <input type="button" id="dwn-btn" value="Save schedule to file" onclick='download();'/>
 
