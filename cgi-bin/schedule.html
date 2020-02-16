@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 from hive import *
 
@@ -21,6 +22,13 @@ var url = 'https://beekeeper.hivehome.com/1.0'
 
 
 function getSchedule(hub_name) {
+	json_div = document.getElementById("text-val")
+	json_div.style.display = "none"
+	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+		for (num of Array(6).keys()) {
+			document.getElementById(day+num).innerHTML = ''
+		}
+	}
 	$.ajax({
 		url: url+'/products',
 		type: 'GET',
@@ -29,7 +37,21 @@ function getSchedule(hub_name) {
 			for (device in json) {
 				if (json[device]['type'] == hub_name) {
 					console.log(JSON.stringify(json[device]['state']['schedule']))
-					document.getElementById("text-val").innerHTML = JSON.stringify(json[device]['state']['schedule']);
+					json_div.innerHTML = JSON.stringify(json[device]['state']['schedule']);
+					for (day in json[device]['state']['schedule']) {
+						for (num in json[device]['state']['schedule'][day]) {
+							el = document.getElementById(day+num);
+							if (hub_name == 'heating') {
+								target = JSON.stringify(json[device]['state']['schedule'][day][num]['value']['target'])+'°C';
+							} else {
+								target = json[device]['state']['schedule'][day][num]['value']['status'];
+							}
+							start = JSON.stringify(json[device]['state']['schedule'][day][num]['start']);
+							hours = ('00'+Math.floor(start/60)).slice(-2);
+							mins = ('00'+start%60).slice(-2);
+							el.innerHTML = '&nbsp;'+target+' @ '+hours+':'+mins+'&nbsp;';
+						}
+					}
 				}
 			}
 		}
@@ -106,6 +128,15 @@ function openfile(e) {
 <button height=10 onclick='getSchedule("hotwater");'>Get Hot Water Schedule</button>
 <br /><br />
 <div id="text-val"></div><br/>
+<table border=0>
+<tr><td>Monday</td><td><div id="monday0"></div></td><td><div id="monday1"></td><td><div id="monday2"></td><td><div id="monday3"></td><td><div id="monday4"></td><td><div id="monday5"></td></tr>
+<tr><td>Tuesday</td><td><div id="tuesday0"></div></td><td><div id="tuesday1"></td><td><div id="tuesday2"></td><td><div id="tuesday3"></td><td><div id="tuesday4"></td><td><div id="tuesday5"></td></tr>
+<tr><td>Wednesday</td><td><div id="wednesday0"></div></td><td><div id="wednesday1"></td><td><div id="wednesday2"></td><td><div id="wednesday3"></td><td><div id="wednesday4"></td><td><div id="wednesday5"></td></tr>
+<tr><td>Thursday</td><td><div id="thursday0"></div></td><td><div id="thursday1"></td><td><div id="thursday2"></td><td><div id="thursday3"></td><td><div id="thursday4"></td><td><div id="thursday5"></td></tr>
+<tr><td>Friday</td><td><div id="friday0"></div></td><td><div id="friday1"></td><td><div id="friday2"></td><td><div id="friday3"></td><td><div id="friday4"></td><td><div id="friday5"></td></tr>
+<tr><td>Saturday</td><td><div id="saturday0"></div></td><td><div id="saturday1"></td><td><div id="saturday2"></td><td><div id="saturday3"></td><td><div id="saturday4"></td><td><div id="saturday5"></td></tr>
+<tr><td>Sunday</td><td><div id="sunday0"></div></td><td><div id="sunday1"></td><td><div id="sunday2"></td><td><div id="sunday3"></td><td><div id="sunday4"></td><td><div id="sunday5"></td></tr>
+</table><br /><br />
 <input type="button" id="dwn-btn" value="Save schedule to file" onclick='download();'/>
 
 <button onclick="document.getElementById('file-input').click();">Load schedule from file</button>
