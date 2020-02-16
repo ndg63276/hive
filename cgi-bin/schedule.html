@@ -19,9 +19,9 @@ print("""
 <script>
 var headers="""+str(headers).replace("u'","'")+""";
 var url = 'https://beekeeper.hivehome.com/1.0'
+var hub_name = 'heating'
 
-
-function getSchedule(hub_name) {
+function getSchedule() {
 	$.ajax({
 		url: url+'/products',
 		type: 'GET',
@@ -37,19 +37,23 @@ function getSchedule(hub_name) {
 	});
 }
 
-function loadJsonIntoForm(json) {
+function clearForm() {
 	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
 		for (num of Array(6).keys()) {
 			document.getElementById(day+num).innerHTML = ''
 		}
 	}
-	json_div = document.getElementById("text-val")
-	json_div.style.display = "none"
+}
+
+function loadJsonIntoForm(json) {
+	clearForm();
+	json_div = document.getElementById("text-val");
+	json_div.style.display = "none";
 	json_div.innerHTML = JSON.stringify(json);
 	for (day in json) {
 		for (num in json[day]) {
 			el = document.getElementById(day+num);
-			if ('target' in json[day][num]['value']) {
+			if (hub_name == 'heating') {
 				target = JSON.stringify(json[day][num]['value']['target'])+'°C';
 			} else {
 				target = json[day][num]['value']['status'];
@@ -72,7 +76,7 @@ function getProducts() {
 }
 
 
-function sendSchedule(hub_name) {
+function sendSchedule() {
 	var schedule = JSON.parse(document.getElementById("text-val").innerHTML);
 	var products = getProducts();
 	var json = JSON.parse(products.responseText);
@@ -119,17 +123,24 @@ function openfile(e) {
 	var file = e[0]; 
 	var reader = new FileReader();
 	reader.readAsText(file,'UTF-8');
-
 	reader.onload = readerEvent => {
 		var content = JSON.parse(readerEvent.target.result)
 		loadJsonIntoForm(content);
 	}
 }
 
+function switchHubName(newHubName) {
+	clearForm();
+	hub_name = newHubName;
+	document.getElementById('hubName').innerHTML = 'Now editing: '+hub_name;
+}
+
 </script>
 </head><body>
-<button height=10 onclick='getSchedule("heating");'>Get Heating Schedule</button>
-<button height=10 onclick='getSchedule("hotwater");'>Get Hot Water Schedule</button>
+<button height=10 onclick='switchHubName("heating");'>Heating</button>
+<button height=10 onclick='switchHubName("hotwater");'>Hot Water</button>
+<br /><br /><div id='hubName'>Now editing: heating</div><br />
+<button height=10 onclick='getSchedule();'>Get Schedule From Hive</button>
 <br /><br />
 <div id="text-val"></div><br/>
 <table border=0>
@@ -146,8 +157,7 @@ function openfile(e) {
 <button onclick="document.getElementById('file-input').click();">Load schedule from file</button>
 <input id="file-input" type="file" name="name" style="display: none;" onchange='openfile(this.files);'/>
 <br /><br />
-<button height=10 onclick='sendSchedule("heating");'>Send Heating Schedule</button>
-<button height=10 onclick='sendSchedule("hotwater");'>Send Hot Water Schedule</button>
+<button height=10 onclick='sendSchedule();'>Send Schedule To Hive</button>
 
 </html>
 """)
