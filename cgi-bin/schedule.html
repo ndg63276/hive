@@ -22,13 +22,6 @@ var url = 'https://beekeeper.hivehome.com/1.0'
 
 
 function getSchedule(hub_name) {
-	json_div = document.getElementById("text-val")
-	json_div.style.display = "none"
-	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
-		for (num of Array(6).keys()) {
-			document.getElementById(day+num).innerHTML = ''
-		}
-	}
 	$.ajax({
 		url: url+'/products',
 		type: 'GET',
@@ -36,26 +29,37 @@ function getSchedule(hub_name) {
 		success: function (json) {
 			for (device in json) {
 				if (json[device]['type'] == hub_name) {
-					console.log(JSON.stringify(json[device]['state']['schedule']))
-					json_div.innerHTML = JSON.stringify(json[device]['state']['schedule']);
-					for (day in json[device]['state']['schedule']) {
-						for (num in json[device]['state']['schedule'][day]) {
-							el = document.getElementById(day+num);
-							if (hub_name == 'heating') {
-								target = JSON.stringify(json[device]['state']['schedule'][day][num]['value']['target'])+'°C';
-							} else {
-								target = json[device]['state']['schedule'][day][num]['value']['status'];
-							}
-							start = JSON.stringify(json[device]['state']['schedule'][day][num]['start']);
-							hours = ('00'+Math.floor(start/60)).slice(-2);
-							mins = ('00'+start%60).slice(-2);
-							el.innerHTML = '&nbsp;'+target+' @ '+hours+':'+mins+'&nbsp;';
-						}
-					}
+					content = json[device]['state']['schedule'];
+					loadJsonIntoForm(content);
 				}
 			}
 		}
 	});
+}
+
+function loadJsonIntoForm(json) {
+	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+		for (num of Array(6).keys()) {
+			document.getElementById(day+num).innerHTML = ''
+		}
+	}
+	json_div = document.getElementById("text-val")
+	json_div.style.display = "none"
+	json_div.innerHTML = JSON.stringify(json);
+	for (day in json) {
+		for (num in json[day]) {
+			el = document.getElementById(day+num);
+			if ('target' in json[day][num]['value']) {
+				target = JSON.stringify(json[day][num]['value']['target'])+'°C';
+			} else {
+				target = json[day][num]['value']['status'];
+			}
+			start = JSON.stringify(json[day][num]['start']);
+			hours = ('00'+Math.floor(start/60)).slice(-2);
+			mins = ('00'+start%60).slice(-2);
+			el.innerHTML = '&nbsp;'+target+' @ '+hours+':'+mins+'&nbsp;';
+		}
+	}
 }
 
 function getProducts() {
@@ -117,8 +121,8 @@ function openfile(e) {
 	reader.readAsText(file,'UTF-8');
 
 	reader.onload = readerEvent => {
-		var content = readerEvent.target.result; // this is the content!
-		document.getElementById("text-val").innerHTML = content;
+		var content = JSON.parse(readerEvent.target.result)
+		loadJsonIntoForm(content);
 	}
 }
 
