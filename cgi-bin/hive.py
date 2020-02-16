@@ -407,6 +407,7 @@ function boostTemp() {
 <input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>
 
 </form></center><br />
+<a href='schedule.html'>Schedule View</a>
 </body>
 </html>
 """)
