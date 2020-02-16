@@ -46,6 +46,26 @@ function clearForm() {
 	}
 }
 
+function createJsonFromForm() {
+	var json = {};
+	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+		json[day] = [];
+		for (num of Array(6).keys()) {
+			target = parseFloat(document.getElementById(day+num).value.replace('°C',''));
+			start = document.getElementById(day+num+'time').value;
+			hours = parseInt(start.split(':')[0]);
+			mins = parseInt(start.split(':')[1]);
+			time = 60*hours + mins
+			if (! isNaN(target)) {
+				json[day].push({"value":{"target":target},"start":time});
+			}
+		}
+	}
+	console.log(json);
+	json_div = document.getElementById("text-val");
+	json_div.innerHTML = JSON.stringify(json);
+}
+
 function loadJsonIntoForm(json) {
 	clearForm();
 	json_div = document.getElementById("text-val");
@@ -78,6 +98,9 @@ function getProducts() {
 
 
 function sendSchedule() {
+	if (hub_name == 'heating') {
+		createJsonFromForm();
+	}
 	var schedule = JSON.parse(document.getElementById("text-val").innerHTML);
 	var products = getProducts();
 	var json = JSON.parse(products.responseText);
@@ -106,6 +129,9 @@ function sendSchedule() {
 
 
 function download() {
+	if (hub_name == 'heating') {
+		createJsonFromForm();
+	}
 	var date = new Date().toISOString().substr(0, 16);
 	var text = document.getElementById("text-val").innerHTML;
 	var filename = "hive_"+hub_name+"_schedule_"+date+".txt";
@@ -194,6 +220,7 @@ function switchHubName(newHubName) {
 <input id="file-input" type="file" name="name" style="display: none;" onchange='openfile(this.files);'/>
 <br /><br />
 <button height=10 onclick='sendSchedule();'>Send Schedule To Hive</button>
+<button height=10 onclick='createJsonFromForm();'>Generate JSON</button>
 
 </html>
 """)
