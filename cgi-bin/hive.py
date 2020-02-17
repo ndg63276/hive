@@ -128,14 +128,18 @@ def get_hub_name(headers):
 
 
 def get_temps(headers, id, startdate, enddate=None):
-	start = str(int(unix_time_millis(startdate)))
+	start = int(unix_time_millis(startdate))
 	if enddate is None:
-		end = str(int(time.time()*1000))
+		end = int(time.time()*1000)
 	else:
-		end = str(int(unix_time_millis(enddate)))
-	params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'}
-	r = requests.get(url+'/history/heating/'+id, headers=headers, params=params)
-	temps = sorted(r.json()['data'], key=lambda k: k['date'])
+		end = int(unix_time_millis(enddate))
+	j = {}
+	while 'data' not in j:
+		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'}
+		r = requests.get(url+'/history/heating/'+id, headers=headers, params=params)
+		j = r.json()
+		start += 1000
+	temps = sorted(j['data'], key=lambda k: k['date'])
 	return temps
 
 
