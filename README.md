@@ -1,8 +1,9 @@
 # Hive Web Interface
 
-A graphical view of the temperature and setpoint in your house. You can also now change the setpoint, and set the boost time and temperature.
+A graphical view of the temperature and weather at your house. You can also change the setpoint, and set the boost time and temperature. And a new schedule editor!
 
 ![Screenshot](/Screenshot.png?raw=true)
+![Screenshot](/Schedule.png?raw=true)
 
 
 ## Mac / Linux Instructions
@@ -62,8 +63,4 @@ python "C:\Users\bob\Desktop\hive-web-master\serve.py"
 You should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/cgi-bin/hive.py?start=-1hour. You can edit the start parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-3hours, and even add an end parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-2hours&end=-1hour.
 
 You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://localhost:8000/cgi-bin/hive.py?start=201801011200&end=20180131.
-
-## Not working?
-
-This code looks for a node called "Receiver 2" in your Hive account. If you get an error, try changing that in cgi-bin/credentials.py.
 
