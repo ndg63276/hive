@@ -97,10 +97,13 @@ def login(username=None, password=None):
 	if username is None:
 		username, password = get_credentials()
 	headers = {"Content-Type": "application/json", "Accept": "application/json"}
+	if username is None:
+		return headers
 	payload = {'username': username, 'password': password}
 	data = json.dumps(payload)
 	r = requests.post(url+'/global/login', headers=headers, data=data)
-	headers['authorization'] = r.json()['token']
+	if 'token' in r.json():
+		headers['authorization'] = r.json()['token']
 	return headers
 
 
