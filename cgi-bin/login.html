@@ -1,0 +1,66 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from hive import login
+import sys
+
+headers = login()
+
+print("Content-type:text/html")
+print()
+print("""
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Hive Login</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+function login() {
+	username = document.getElementById("username").value;
+	password = document.getElementById("password").value;
+	$.ajax({
+		url: 'http://'+location.host+'/cgi-bin/login.py?username='+username+'&password='+password,
+		type: 'GET',
+		dataType: 'json',
+		success: function(json) {
+			console.log(json);
+			if ('authorization' in json) {
+				console.log('success');
+				document.getElementById("loginstate").innerHTML = 'You are now logged in.';
+				document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='hive.py'>History view</a><br />";
+			}
+		},
+		error: function() {
+			console.log('failed')
+		}
+	})
+}
+
+
+</script>
+<style>
+label {
+  width: 100px;
+  display: inline-block;
+}
+</style>
+</head>
+<body>""")
+
+if 'authorization' in headers:
+	print("You are logged in already<br /><br />")
+	print("<a href='schedule.html'>Schedule view</a><br />")
+	print("<a href='hive.py'>History view</a><br />")
+	print("</body></html>")
+	sys.exit()
+
+print("""
+<div id="loginstate">You are not logged in.</div><br /><br />
+<div id="mainbody"><label for="username">Username: </label><input id="username"><br />
+<label for="password">Password: </label><input type="password" id="password"><br /><br />
+<input type="submit" value="Submit" onclick="return login();"></div>
+</body></html>""")
+
