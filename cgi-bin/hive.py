@@ -107,6 +107,15 @@ def login(username=None, password=None):
 	return headers
 
 
+def get_user_info(headers):
+	data = {'homes': False, 'products': False, 'devices': False, 'actions': False}
+	data['token'] = headers['authorization']
+	r = requests.post(url+'/auth/admin-login', json=data)
+	if 'user' in r.json():
+		return r.json()['user']
+	return {}
+
+
 def get_id(headers, hub_name='heating'):
 	r = requests.get(url+'/products', headers=headers)
 	nodes = r.json()
