@@ -42,14 +42,16 @@ def unix_time_millis(dt):
 	return 1000 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 
-def get_location_id():
+def get_location_id(headers):
 	j = get_json()
 	if j is None:
 		return None
 	if 'location_id' in j:
 		return j['location_id']
 	if 'latitude' not in j or 'longitude' not in j:
-		return None
+		info = get_user_info(headers)
+		j['latitude'] = info['latitude']
+		j['longitude'] = info['longitude']
 	latitude = j['latitude']
 	longitude = j['longitude']
 	if latitude == 0 and longitude == 0:
@@ -70,9 +72,9 @@ def get_location_id():
 	return min_dist_id
 
 
-def get_weather(startdate, enddate):
+def get_weather(startdate, enddate, headers):
 	to_return = {}
-	location_id = get_location_id()
+	location_id = get_location_id(headers)
 	if location_id is None:
 		return {}
 	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/'+location_id+'?res=hourly&key='+met_office_key
@@ -281,7 +283,7 @@ if __name__ == "__main__":
 
 	temps = get_temps(headers, id, startdate, enddate)
 	currentTemp, currentTarget = get_current_temps(headers)
-	weather = get_weather(startdate, enddate)
+	weather = get_weather(startdate, enddate, headers)
 	if startdate.day == enddate.day:
 		xformat="HH:mm:ss"
 	else:
