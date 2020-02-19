@@ -1,2 +1,4 @@
-cgi-bin/credentials.py*
 cgi-bin/credentials.json
+*pyc
+*__pycache__*
+*~
