@@ -5,7 +5,7 @@ import sys
 from datetime import datetime, timedelta
 import re
 from haversine import haversine
-from hive import login, get_hub_name, get_id, get_node_names, get_temps, get_current_temps, get_weather, url
+from hive import login, get_hub_name, get_id, get_node_names, get_temps, get_device, get_weather, url
 
 print("Content-type:text/html")
 print()
@@ -92,7 +92,18 @@ if 'end' in fs:
 			enddate = datetime.now() - timedelta(seconds=int(match.group(1)))
 
 temps = get_temps(headers, id_, startdate, enddate)
-currentTemp, currentTarget = get_current_temps(headers)
+heating_device = get_device(headers)
+if heating_device is None:
+	currentTemp = 0
+	currentTarget = 0
+	currentMode = 'SCHEDULE'
+	currentBoost = None
+else:
+	currentTemp = heating_device['props']['temperature']
+	currentTarget = heating_device['state']['target']
+	currentMode = heating_device['state']['mode']
+	currentBoost = heating_device['state']['boost']
+
 weather = get_weather(startdate, enddate, headers)
 if startdate.day == enddate.day:
 	xformat="HH:mm:ss"
@@ -116,6 +127,8 @@ var pagelink=location.origin+location.pathname;
 """)
 print("var currentTemp="+str(currentTemp)+";")
 print("var currentTargetRaw="+str(currentTarget)+";")
+print("var currentMode='"+str(currentMode)+"';")
+print("var currentBoost='"+str(currentBoost)+"';")
 print("""
 var currentTarget=currentTargetRaw.toFixed(1)
 
@@ -171,46 +184,78 @@ options: {
 };
 
 window.onload = function() {
-var ctx = document.getElementById('myChart').getContext('2d');
-var myChart = new Chart(ctx, config);
-document.getElementById('currentTempId').innerHTML=currentTemp+'&deg;C'
-document.getElementById('currentTargetId').innerHTML=currentTarget+'&deg;C'
-document.getElementById('tempToSet').value=currentTarget
-document.getElementById('boostTempToSet').value=currentTarget
+	var ctx = document.getElementById('myChart').getContext('2d');
+	var myChart = new Chart(ctx, config);
+	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
+	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
+	document.getElementById('tempToSet').value = currentTarget;
+	document.getElementById('boostTempToSet').value = currentTarget;
+	if (currentMode == 'BOOST') {
+		document.getElementById('boosting').innerHTML = 'Now Boosting';
+		document.getElementById('boostTime').value = currentBoost;
+		document.getElementById('boostOrStop').innerHTML = 'Stop';
+	}
 };
 
 
 function setTemp() {
-temp = document.getElementById("tempToSet").value;
-console.log('set '+temp);
-var data={'target': temp};
-$.ajax({
-	url: nodesurl,
-	type: 'POST',
-	headers: headers,
-	data: JSON.stringify(data),
-	success: function () {
-		console.log('success')
+	temp = document.getElementById("tempToSet").value;
+	console.log('set '+temp);
+	var data={'target': temp};
+	$.ajax({
+		url: nodesurl,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function () {
+			console.log('success')
+		}
+	});
+	location.reload();
+}
+
+function boostOrStop() {
+	console.log('boostOrStop')
+	if (document.getElementById('boostOrStop').innerHTML == 'Stop') {
+		stopBoost();
+	} else {
+		boostTemp();
 	}
-});
-location.reload();
 }
 
 function boostTemp() {
-temp = document.getElementById("boostTempToSet").value;
-time = document.getElementById("boostTime").value;
-console.log('boost '+temp+' '+time);
-var data={'mode': 'BOOST', 'boost': time, 'target': temp}; 
-$.ajax({
-	url: nodesurl,
-	type: 'POST',
-	headers: headers,
-	data: JSON.stringify(data),
-	success: function () {
-		console.log('success')
-	}
-});
-location.reload();
+	document.getElementById('boostOrStop').innerHTML = 'Boosting...'
+	temp = document.getElementById("boostTempToSet").value;
+	time = document.getElementById("boostTime").value;
+	console.log('boost '+temp+' '+time);
+	var data={'mode': 'BOOST', 'boost': time, 'target': temp};
+	$.ajax({
+		url: nodesurl,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function (json) {
+			console.log('success');
+			console.log(json);
+		}
+	});
+	setTimeout(function() {location.reload();}, 5000);
+}
+
+function stopBoost() {
+	document.getElementById('boostOrStop').innerHTML = 'Stopping...'
+	var data={'mode': 'SCHEDULE'};
+	$.ajax({
+		url: nodesurl,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function (json) {
+			console.log('success');
+			console.log(json);
+		}
+	});
+	setTimeout(function() {location.reload();}, 5000);
 }
 
 </script>
@@ -218,11 +263,11 @@ location.reload();
 </head>
 <body>
 
-<table border=0 align=center width=70%><tr align=center><th width=25%>Current Temperature</th><th width=25%>Current Setpoint</th><th width=25%>New setpoint</th><th>Boost</th></tr>
+<table border=0 align=center width=90%><tr align=center><th width=20%>Current Temperature</th><th width=20%>Current Setpoint</th><th width=20%>New setpoint</th><th width=20% id='boosting'>Boost</th><th></th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
 <td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
-<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td><td style='text-align:left;'><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
 </tr></table>
 
 <canvas id="myChart" width="800" height="400"></canvas>
@@ -236,6 +281,7 @@ location.reload();
 
 </form></center><br />
 <a href='schedule.html'>Schedule View</a>
+
 </body>
 </html>
 """)

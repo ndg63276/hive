@@ -153,17 +153,13 @@ def get_temps(headers, id_, startdate, enddate=None):
 	return temps
 
 
-def get_current_temps(headers, hub_name='heating'):
+def get_device(headers, hub_name='heating'):
 	r = requests.get(url+'/products', headers=headers)
 	heating_device = None
 	for device in r.json():
 		if device['type'] == hub_name:
 			heating_device = device
-	if heating_device is None:
-		return 0, 0
-	currentTemp = heating_device['props']['temperature']
-	currentTarget = heating_device['state']['target']
-	return currentTemp, currentTarget
+	return heating_device
 
 
 def get_schedule(headers, hub_name='heating'):
