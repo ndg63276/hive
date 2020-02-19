@@ -42,7 +42,7 @@ python "C:\Users\bob\Desktop\hive-web-master\serve.py"
 * The web page will only keep working as long as you keep the DOS box open. If you close it down, the web page will stop working.
 
 ## Advanced
-On the 'History View', you should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/cgi-bin/hive.py?start=-1hour. You can edit the start parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-3hours, and even add an end parameter, eg http://localhost:8000/cgi-bin/hive.py?start=-2hours&end=-1hour.
+On the 'History View', you should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/cgi-bin/history.html?start=-1hour. You can edit the start parameter, eg http://localhost:8000/cgi-bin/history.html?start=-3hours, and even add an end parameter, eg http://localhost:8000/cgi-bin/history.html?start=-2hours&end=-1hour.
 
-You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://localhost:8000/cgi-bin/hive.py?start=201801011200&end=20180131.
+You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://localhost:8000/cgi-bin/history.html?start=201801011200&end=20180131.
 
