@@ -26,8 +26,10 @@ if 'username' in fs and 'password' in fs:
 	headers = login(username, password)
 
 if 'authorization' in headers:
-	j['username'] = username
-	j['password'] = password
+	if 'store' in fs and fs.getvalue('store') == 'true':
+		j['username'] = username
+		j['password'] = password
+	j['token'] = headers['authorization']
 	with open(cred_path, 'w') as f:
 		json.dump(j, f, indent=4)
 	print(json.dumps(headers))

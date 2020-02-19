@@ -21,8 +21,9 @@ print("""
 function login() {
 	username = document.getElementById("username").value;
 	password = document.getElementById("password").value;
+	storecreds = document.getElementById("storecreds").checked;
 	$.ajax({
-		url: 'http://'+location.host+'/cgi-bin/login.py?username='+username+'&password='+password,
+		url: 'http://'+location.host+'/cgi-bin/login.py?username='+username+'&password='+password+'&store='+storecreds,
 		type: 'GET',
 		dataType: 'json',
 		success: function(json) {
@@ -42,7 +43,7 @@ function login() {
 
 </script>
 <style>
-label {
+.l1 {
   width: 100px;
   display: inline-block;
 }
@@ -51,7 +52,7 @@ label {
 <body>""")
 
 if 'authorization' in headers:
-	print("You are logged in already<br /><br />")
+	print("You are already logged in.<br /><br />")
 	print("<a href='schedule.html'>Schedule view</a><br />")
 	print("<a href='hive.py'>History view</a><br />")
 	print("</body></html>")
@@ -59,8 +60,9 @@ if 'authorization' in headers:
 
 print("""
 <div id="loginstate">You are not logged in.</div><br /><br />
-<div id="mainbody"><label for="username">Username: </label><input id="username"><br />
-<label for="password">Password: </label><input type="password" id="password"><br /><br />
+<div id="mainbody"><label class="l1" for="username">Username: </label><input id="username"><br />
+<label class="l1" for="password">Password: </label><input type="password" id="password"><br /><br />
+<input type="checkbox" id="storecreds"><label for="storecreds"> Store these credentials in plain text</label><br /><br />
 <input type="submit" value="Submit" onclick="return login();"></div>
 </body></html>""")
 
