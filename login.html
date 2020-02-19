@@ -1,0 +1,48 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Hive Login</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+function login() {
+	username = document.getElementById("username").value;
+	password = document.getElementById("password").value;
+	storecreds = document.getElementById("storecreds").checked;
+	$.ajax({
+		url: 'http://'+location.host+'/cgi-bin/login.py?username='+username+'&password='+password+'&store='+storecreds,
+		type: 'GET',
+		dataType: 'json',
+		success: function(json) {
+			console.log(json);
+			if ('authorization' in json) {
+				console.log('success');
+				document.getElementById("loginstate").innerHTML = 'You are now logged in.';
+				document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='hive.py'>History view</a><br />";
+			}
+		},
+		error: function(json) {
+			console.log(json)
+		}
+	})
+}
+
+
+</script>
+<style>
+.l1 {
+  width: 100px;
+  display: inline-block;
+}
+</style>
+</head>
+<body>
+
+<div id="loginstate">You are not logged in.</div><br /><br />
+<div id="mainbody"><label class="l1" for="username">Username: </label><input id="username"><br />
+<label class="l1" for="password">Password: </label><input type="password" id="password"><br /><br />
+<input type="checkbox" id="storecreds"><label for="storecreds"> Store these credentials in plain text</label><br /><br />
+<input type="submit" value="Submit" onclick="return login();"></div>
+</body></html>
