@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import cgi
 import os, sys
@@ -11,6 +11,8 @@ import json
 import pytz
 from haversine import haversine
 url = 'https://beekeeper.hivehome.com/1.0'
+met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
+epoch = datetime.utcfromtimestamp(0)
 
 
 def get_json():
@@ -24,17 +26,28 @@ def get_json():
 	return j
 
 
-def get_credentials():
-	j = get_json()
-	if j is None:
-		return None, None
-	username = j['username']
-	password = j['password']
-	return username, password
-
-
-met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa'
-epoch = datetime.utcfromtimestamp(0)
+def login(username=None, password=None):
+	headers = {"Content-Type": "application/json", "Accept": "application/json"}
+	if username is None:
+		j = get_json()
+		if j is None:
+			return headers
+		if 'token' in j:
+			headers['authorization'] = j['token']
+			info = get_user_info(headers)
+			if info != {}:
+				return headers
+		if 'username' in j and 'password' in j:
+			username = j['username']
+			password = j['password']
+	if username is None:
+		return headers
+	payload = {'username': username, 'password': password}
+	data = json.dumps(payload)
+	r = requests.post(url+'/global/login', headers=headers, data=data)
+	if 'token' in r.json():
+		headers['authorization'] = r.json()['token']
+	return headers
 
 
 def unix_time_millis(dt):
@@ -93,20 +106,6 @@ def get_weather(startdate, enddate, headers):
 			if dt_time > startdate and dt_time < enddate:
 				to_return[unix_time_millis(dt_time)] = the_temp
 	return to_return
-
-
-def login(username=None, password=None):
-	if username is None:
-		username, password = get_credentials()
-	headers = {"Content-Type": "application/json", "Accept": "application/json"}
-	if username is None:
-		return headers
-	payload = {'username': username, 'password': password}
-	data = json.dumps(payload)
-	r = requests.post(url+'/global/login', headers=headers, data=data)
-	if 'token' in r.json():
-		headers['authorization'] = r.json()['token']
-	return headers
 
 
 def get_user_info(headers):
@@ -190,15 +189,11 @@ if __name__ == "__main__":
 	print("Content-type:text/html")
 	print()
 
-	username, password = get_credentials()
-	if username is None:
-		print("No credentials.json file found.<br />")
-		print("Copy cgi-bin/credentials.example.json to cgi-bin/credentials.json<br />")
-		print("Then edit it to include your hive username and password.")
+	headers = login()
+	if 'authorization' not in headers:
+		print("""<html><head><meta http-equiv="refresh" content="0; URL='login.html'" /></head></html>""")
 		sys.exit()
 
-
-	headers = login(username, password)
 	hub_name = get_hub_name(headers)
 	id = get_id(headers, hub_name)
 
