@@ -61,10 +61,8 @@ function login() {
 
 function checklogin() {
 	var token = getCookie('token');
-	console.log(token);
 	if (token != "") {
 		data = JSON.stringify({"homes": false, "products": false, "devices": false, "actions": false, "token": token});
-		console.log(data);
 		$.ajax({
 			url: baseurl + '/auth/admin-login',
 			type: 'POST',
@@ -80,7 +78,7 @@ function checklogin() {
 				}
 			},
 			error: function(json) {
-				console.log('error');
+				console.log('Token expired');
 			}
 		})
 	}
