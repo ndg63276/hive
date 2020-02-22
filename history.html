@@ -16,38 +16,6 @@ if id_ is None:
 -->
 
 <!--
-enddate = datetime.now()
-if 'end' in fs:
-	end = fs.getvalue('end')
-	if end.startswith('20'):
-		endyear=int(end[0:4])
-		endmonth=int(end[4:6])
-		endday=int(end[6:8])
-		endhour = endmin = endsec = 0
-		if len(end)>8:
-			endhour = int(end[8:10])
-			if len(end)>10:
-				endmin = int(end[10:12])
-				if len(end)>12:
-					endsec = int(end[12:14])
-		enddate = datetime(endyear, endmonth, endday, endhour, endmin, endsec)
-	match = re.match(r'-([0-9]+)(year|month|week|day|hour|min|sec)', end, re.I)
-	if match:
-		if 'year' in match.group(2):
-			enddate = datetime.now() - timedelta(days=int(match.group(1))*365)
-		if 'month' in match.group(2):
-			enddate = datetime.now() - timedelta(days=int(match.group(1))*31)
-		if 'week' in match.group(2):
-			enddate = datetime.now() - timedelta(weeks=int(match.group(1)))
-		if 'day' in match.group(2):
-			enddate = datetime.now() - timedelta(days=int(match.group(1)))
-		if 'hour' in match.group(2):
-			enddate = datetime.now() - timedelta(hours=int(match.group(1)))
-		if 'min' in match.group(2):
-			enddate = datetime.now() - timedelta(minutes=int(match.group(1)))
-		if 'sec' in match.group(2):
-			enddate = datetime.now() - timedelta(seconds=int(match.group(1)))
-
 temps = get_temps(headers, id_, startdate, enddate)
 heating_device = get_device(headers)
 if heating_device is None:
@@ -62,10 +30,6 @@ else:
 	currentBoost = heating_device['state']['boost']
 
 weather = get_weather(startdate, enddate, headers)
-if startdate.day == enddate.day:
-	xformat="HH:mm:ss"
-else:
-	xformat="DD-MM-YY HH:mm:ss"
 -->
 
 <head>
@@ -78,13 +42,58 @@ else:
 <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script>
+var baseurl = 'https://beekeeper.hivehome.com/1.0';
+
+function checklogin() {
+	var token = getCookie('token');
+	if (token != "") {
+		data = JSON.stringify({"homes": false, "products": false, "devices": false, "actions": false, "token": token});
+		$.ajax({
+			url: baseurl + '/auth/admin-login',
+			type: 'POST',
+			contentType: 'application/json',
+			data: data,
+			dataType: 'json',
+			success: function(json) {
+				console.log('success');
+				console.log(json);
+				if ( 'user' in json){
+					console.log('authorized');
+					return {"Content-Type": "application/json", "Accept": "application/json", "authorization": token};
+				} else {
+					window.location.replace('index.html')
+				}
+			},
+			error: function(json) {
+				console.log('Token expired');
+				window.location.replace('index.html')
+			}
+		})
+	}
+}
+
+
+function getCookie(cname) {
+	var name = cname + "=";
+	var ca = document.cookie.split(';');
+	for(var i = 0; i < ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0) == ' ') {
+			c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+			return c.substring(name.length, c.length);
+		}
+	}
+	return "";
+}
+
+
+
 const queryString = window.location.search;
-console.log(queryString);
 const urlParams = new URLSearchParams(queryString);
-console.log(urlParams.has('start'));
 
 var startdate = new Date();
-
 if (urlParams.has('start')) {
 	var start = urlParams.get('start');
 	if (start.startsWith('20')) {
@@ -128,12 +137,62 @@ if (urlParams.has('start')) {
 	startdate.setDate(startdate.getDate() - 1);
 }
 
+var enddate = new Date();
+if (urlParams.has('end')) {
+	var end = urlParams.get('end');
+	if (end.startsWith('20')) {
+		endyear = end.substring(0, 4);
+		endmonth = end.substring(4, 6);
+		endday = end.substring(6, 8);
+		endhour = 0;
+		endmin = 0;
+		endsec = 0;
+		if (end.length > 8) { endhour = end.substring(8, 10); }
+		if (end.length > 10) { endmin = end.substring(10, 12); }
+		if (end.length > 12) { endsec = end.substring(12, 14); }
+		enddate = new Date(endyear, endmonth-1, endday, endhour, endmin, endsec);
+	}
+	var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
+	var match = end.match(pattern);
+	if (match != null) {
+		if (match[2].includes('year')) {
+			enddate.setFullYear(enddate.getFullYear() - match[1]);
+		}
+		if (match[2].includes('month')) {
+			enddate.setMonth(enddate.getMonth() - match[1]);
+		}
+		if (match[2].includes('week')) {
+			enddate.setDate(enddate.getDate() - match[1] * 7);
+		}
+		if (match[2].includes('day')) {
+			enddate.setDate(enddate.getDate() - match[1]);
+		}
+		if (match[2].includes('hour')) {
+			enddate.setHours(enddate.getHours() - match[1]);
+		}
+		if (match[2].includes('min')) {
+			enddate.setMinutes(enddate.getMinutes() - match[1]);
+		}
+		if (match[2].includes('sec')) {
+			enddate.setSeconds(enddate.getSeconds() - match[1]);
+		}
+	}
+}
 
+if (startdate.getFullYear() === enddate.getFullYear() &&
+	startdate.getMonth() === startdate.getMonth() &&
+	startdate.getDate() === enddate.getDate()) {
+		var tooltipFormat="HH:mm:ss";
+} else {
+		var tooltipFormat="DD-MM-YY HH:mm:ss";
+}
 
-
-console.log(startdate);
 
 var pagelink=location.origin+location.pathname;
+var dataSets = [];
+var dataPoints = [];
+var dataPoints2 = [];
+var dataPoints3 = [];
 
 /*
 print("var currentTemp="+str(currentTemp)+";")
@@ -142,13 +201,6 @@ print("var currentMode='"+str(currentMode)+"';")
 print("var currentBoost='"+str(currentBoost)+"';")
 
 var currentTarget=currentTargetRaw.toFixed(1)
-
-var dataSets = [];
-var dataPoints = [];
-var dataPoints2 = [];
-var dataPoints3 = [];
-
-print("var tooltipFormat = '"+xformat +"';")
 
 for i in temps:
 	print("dataPoints.push({x: "+str(i['date'])+", y: "+str(i['temperature'])+" });")
@@ -192,6 +244,8 @@ var config = {
 };
 
 window.onload = function() {
+	var headers = checklogin();
+	console.log(headers);
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
 	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
