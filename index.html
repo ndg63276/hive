@@ -49,7 +49,7 @@ function login() {
 				console.log('success');
 				setCookie('token', json['token'], 365)
 				document.getElementById("loginstate").innerHTML = 'You are now logged in.';
-				document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='hive.py'>History view</a><br />";
+				document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
 			}
 		},
 		error: function(json) {
@@ -74,7 +74,7 @@ function checklogin() {
 				console.log(json);
 				if ('user' in json){
 					document.getElementById("loginstate").innerHTML = "You are now logged in.";
-					document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='hive.py'>History view</a><br />"
+					document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />"
 				}
 			},
 			error: function(json) {

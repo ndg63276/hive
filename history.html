@@ -1,15 +1,5 @@
-#!/usr/bin/env python3
-
-import cgi
-import sys
-from datetime import datetime, timedelta
-import re
-from haversine import haversine
-from hive import login, get_hub_name, get_id, get_node_names, get_temps, get_device, get_weather, url
-
-print("Content-type:text/html")
-print()
-
+<html>
+<!--
 headers = login()
 if 'authorization' not in headers:
 	print("""<html><head><meta http-equiv="refresh" content="0; URL='login.html'" /></head></html>""")
@@ -23,42 +13,9 @@ if id_ is None:
 	print("Here are the devices I could find:<br />")
 	print(str(get_node_names(headers)))
 	sys.exit()
+-->
 
-fs = cgi.FieldStorage()
-
-startdate = datetime.now()-timedelta(days=1)
-if 'start' in fs:
-	start = fs.getvalue('start')
-	if start.startswith('20'):
-		startyear=int(start[0:4])
-		startmonth=int(start[4:6])
-		startday=int(start[6:8])
-		starthour = startmin = startsec = 0
-		if len(start)>8:
-			starthour = int(start[8:10])
-			if len(start)>10:
-				startmin = int(start[10:12])
-				if len(start)>12:
-					startsec = int(start[12:14])
-		startdate = datetime(startyear, startmonth, startday, starthour, startmin, startsec)
-	match = re.match(r'-([0-9]+)(year|month|week|day|hour|min|sec)', start, re.I)
-	if match:
-		if 'year' in match.group(2):
-			startdate = datetime.now() - timedelta(days=int(match.group(1))*365)
-		if 'month' in match.group(2):
-			startdate = datetime.now() - timedelta(days=int(match.group(1))*31)
-		if 'week' in match.group(2):
-			startdate = datetime.now() - timedelta(weeks=int(match.group(1)))
-		if 'day' in match.group(2):
-			startdate = datetime.now() - timedelta(days=int(match.group(1)))
-		if 'hour' in match.group(2):
-			startdate = datetime.now() - timedelta(hours=int(match.group(1)))
-		if 'min' in match.group(2):
-			startdate = datetime.now() - timedelta(minutes=int(match.group(1)))
-		if 'sec' in match.group(2):
-			startdate = datetime.now() - timedelta(seconds=int(match.group(1)))
-
-
+<!--
 enddate = datetime.now()
 if 'end' in fs:
 	end = fs.getvalue('end')
@@ -109,10 +66,8 @@ if startdate.day == enddate.day:
 	xformat="HH:mm:ss"
 else:
 	xformat="DD-MM-YY HH:mm:ss"
+-->
 
-
-print("""
-<html>
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -123,20 +78,76 @@ print("""
 <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script>
+const queryString = window.location.search;
+console.log(queryString);
+const urlParams = new URLSearchParams(queryString);
+console.log(urlParams.has('start'));
+
+var startdate = new Date();
+
+if (urlParams.has('start')) {
+	var start = urlParams.get('start');
+	if (start.startsWith('20')) {
+		startyear = start.substring(0, 4);
+		startmonth = start.substring(4, 6);
+		startday = start.substring(6, 8);
+		starthour = 0;
+		startmin = 0;
+		startsec = 0;
+		if (start.length > 8) { starthour = start.substring(8, 10); }
+		if (start.length > 10) { startmin = start.substring(10, 12); }
+		if (start.length > 12) { startsec = start.substring(12, 14); }
+		startdate = new Date(startyear, startmonth-1, startday, starthour, startmin, startsec);
+	}
+	var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
+	var match = start.match(pattern);
+	if (match != null) {
+		if (match[2].includes('year')) {
+			startdate.setFullYear(startdate.getFullYear() - match[1]);
+		}
+		if (match[2].includes('month')) {
+			startdate.setMonth(startdate.getMonth() - match[1]);
+		}
+		if (match[2].includes('week')) {
+			startdate.setDate(startdate.getDate() - match[1] * 7);
+		}
+		if (match[2].includes('day')) {
+			startdate.setDate(startdate.getDate() - match[1]);
+		}
+		if (match[2].includes('hour')) {
+			startdate.setHours(startdate.getHours() - match[1]);
+		}
+		if (match[2].includes('min')) {
+			startdate.setMinutes(startdate.getMinutes() - match[1]);
+		}
+		if (match[2].includes('sec')) {
+			startdate.setSeconds(startdate.getSeconds() - match[1]);
+		}
+	}
+} else {
+	startdate.setDate(startdate.getDate() - 1);
+}
+
+
+
+
+console.log(startdate);
+
 var pagelink=location.origin+location.pathname;
-""")
+
+/*
 print("var currentTemp="+str(currentTemp)+";")
 print("var currentTargetRaw="+str(currentTarget)+";")
 print("var currentMode='"+str(currentMode)+"';")
 print("var currentBoost='"+str(currentBoost)+"';")
-print("""
+
 var currentTarget=currentTargetRaw.toFixed(1)
 
 var dataSets = [];
 var dataPoints = [];
 var dataPoints2 = [];
 var dataPoints3 = [];
-""")
+
 print("var tooltipFormat = '"+xformat +"';")
 
 for i in temps:
@@ -150,37 +161,34 @@ print("dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', 
 print("dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3})")
 print("var headers="+str(headers).replace("u'","'")+";")
 print("var nodesurl='"+url+"/nodes/heating/"+id_+"';")
-
-print("""
+*/
 
 var config = {
-type: 'line',
-data: { datasets: dataSets },
-options: {
-	title: { display: false },
-	legend: {
-		display: true,
-		position: 'bottom',
-		labels: { fontSize: 18, usePointStyle: true }
-	},
-	scales: {
-		xAxes: [{
-			type: 'time',
-			time: { tooltipFormat: tooltipFormat },
+	type: 'line',
+	data: { datasets: dataSets },
+	options: {
+		title: { display: false },
+		legend: {
 			display: true,
-			scaleLabel: { display: false }
-		}],
-		yAxes: [{
-			id: 'left-y-axis',
-			display: true,
-			position: 'left',
-			type: 'linear',
-			scaleLabel: {
-				display: false
-			}
-		}]
+			position: 'bottom',
+			labels: { fontSize: 18, usePointStyle: true }
+		},
+		scales: {
+			xAxes: [{
+				type: 'time',
+				time: { tooltipFormat: tooltipFormat },
+				display: true,
+				scaleLabel: { display: false }
+			}],
+			yAxes: [{
+				id: 'left-y-axis',
+				display: true,
+				position: 'left',
+				type: 'linear',
+				scaleLabel: { display: false }
+			}]
+		}
 	}
-}
 };
 
 window.onload = function() {
@@ -284,4 +292,3 @@ function stopBoost() {
 
 </body>
 </html>
-""")
