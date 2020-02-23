@@ -1,7 +1,6 @@
 <html>
 
 <!--
-temps = get_temps(headers, id_, startdate, enddate)
 heating_device = get_device(headers)
 if heating_device is None:
 	currentTemp = 0
@@ -29,6 +28,44 @@ weather = get_weather(startdate, enddate, headers)
 <script>
 var baseurl = 'https://beekeeper.hivehome.com/1.0';
 var hub_name = 'heating';
+var headers = checklogin();
+console.log('headers: '+headers);
+if (headers === null) {
+	window.location.replace('index.html');
+};
+id_ = get_id(headers);
+console.log('id_: '+id_)
+
+function get_temps(headers, id_, startdate, enddate) {
+	start = startdate.getTime();
+	end = enddate.getTime();
+	var j = {}
+	while (!('data' in j)) {
+		console.log('getting temps');
+		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'};
+		$.ajax({
+			url: baseurl + '/history/heating/' + id_,
+			headers: headers,
+			type: 'GET',
+			data: params,
+			dataType: 'json',
+			async: false,
+			success: function(json) {
+				console.log('success in get_temps')
+				j = json;
+			},
+			error: function(json) {
+				console.log('error in get_temps')
+			}
+		});
+		start += 1000;
+	}
+	console.log(j);
+	temps = j['data'];
+	return temps;
+}
+
+
 
 function get_id(headers) {
 	$.ajax({
@@ -197,6 +234,8 @@ if (startdate.getFullYear() === enddate.getFullYear() &&
 		var tooltipFormat="DD-MM-YY HH:mm:ss";
 }
 
+temps = get_temps(headers, id_, startdate, enddate)
+console.log('temps: '+temps)
 
 var pagelink=location.origin+location.pathname;
 var dataSets = [];
@@ -254,13 +293,6 @@ var config = {
 };
 
 window.onload = function() {
-	var headers = checklogin();
-	console.log('headers: '+headers);
-	if (headers === null) {
-		window.location.replace('index.html');
-	};
-	id_ = get_id(headers);
-	console.log('id_: '+id_)
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
 //	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
