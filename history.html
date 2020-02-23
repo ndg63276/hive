@@ -1,21 +1,4 @@
 <html>
-
-<!--
-heating_device = get_device(headers)
-if heating_device is None:
-	currentTemp = 0
-	currentTarget = 0
-	currentMode = 'SCHEDULE'
-	currentBoost = None
-else:
-	currentTemp = heating_device['props']['temperature']
-	currentTarget = heating_device['state']['target']
-	currentMode = heating_device['state']['mode']
-	currentBoost = heating_device['state']['boost']
-
-weather = get_weather(startdate, enddate, headers)
--->
-
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -34,7 +17,32 @@ if (headers === null) {
 	window.location.replace('index.html');
 };
 id_ = get_id(headers);
-console.log('id_: '+id_)
+console.log('id_: '+id_);
+device_info = get_device_info(headers, hub_name);
+console.log('device info: '+device_info)
+
+var currentTemp = device_info['props']['temperature']
+var currentTarget = device_info['state']['target']
+var currentMode = device_info['state']['mode']
+var currentBoost = device_info['state']['boost']
+
+function get_device_info(headers, hub_name) {
+	$.ajax({
+		url: baseurl + '/products',
+		headers: headers,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			for (device in json) {
+				if (json[device]['type'] == hub_name) {
+					heating_device = json[device]
+				}
+			}
+		}
+	});
+	return heating_device;
+}
 
 function get_temps(headers, id_, startdate, enddate) {
 	start = startdate.getTime();
@@ -64,8 +72,6 @@ function get_temps(headers, id_, startdate, enddate) {
 	temps = j['data'];
 	return temps;
 }
-
-
 
 function get_id(headers) {
 	$.ajax({
@@ -119,7 +125,6 @@ function checklogin() {
 	return headers;
 }
 
-
 function getCookie(cname) {
 	var name = cname + "=";
 	var ca = document.cookie.split(';');
@@ -134,8 +139,6 @@ function getCookie(cname) {
 	}
 	return "";
 }
-
-
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -235,7 +238,6 @@ if (startdate.getFullYear() === enddate.getFullYear() &&
 }
 
 temps = get_temps(headers, id_, startdate, enddate)
-console.log('temps: '+temps)
 
 var pagelink=location.origin+location.pathname;
 var dataSets = [];
@@ -243,26 +245,21 @@ var dataPoints = [];
 var dataPoints2 = [];
 var dataPoints3 = [];
 
+for (i in temps) {
+	dataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
+}
+
 /*
-print("var currentTemp="+str(currentTemp)+";")
-print("var currentTargetRaw="+str(currentTarget)+";")
-print("var currentMode='"+str(currentMode)+"';")
-print("var currentBoost='"+str(currentBoost)+"';")
 
-var currentTarget=currentTargetRaw.toFixed(1)
-
-for i in temps:
-	print("dataPoints.push({x: "+str(i['date'])+", y: "+str(i['temperature'])+" });")
-
+weather = get_weather(startdate, enddate, headers)
 for i in sorted(weather.keys()):
 	print("dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });")
 
-
-print("dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints})")
-print("dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3})")
-print("var headers="+str(headers).replace("u'","'")+";")
-print("var nodesurl='"+url+"/nodes/heating/"+id_+"';")
 */
+
+dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints});
+//dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
+var nodesurl = baseurl+'/nodes/heating/'+id_;
 
 var config = {
 	type: 'line',
@@ -295,10 +292,10 @@ var config = {
 window.onload = function() {
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
-//	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
-//	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
-//	document.getElementById('tempToSet').value = currentTarget;
-//	document.getElementById('boostTempToSet').value = currentTarget;
+	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
+	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
+	document.getElementById('tempToSet').value = currentTarget;
+	document.getElementById('boostTempToSet').value = currentTarget;
 	if (currentMode == 'BOOST') {
 		document.getElementById('boosting').innerHTML = 'Now Boosting';
 		document.getElementById('boostTime').value = currentBoost;
