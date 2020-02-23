@@ -1,19 +1,4 @@
 <html>
-<!--
-headers = login()
-if 'authorization' not in headers:
-	print("""<html><head><meta http-equiv="refresh" content="0; URL='login.html'" /></head></html>""")
-	sys.exit()
-
-hub_name = get_hub_name(headers)
-id_ = get_id(headers, hub_name)
-
-if id_ is None:
-	print("Could not find a device called "+hub_name+".<br />")
-	print("Here are the devices I could find:<br />")
-	print(str(get_node_names(headers)))
-	sys.exit()
--->
 
 <!--
 temps = get_temps(headers, id_, startdate, enddate)
@@ -43,6 +28,26 @@ weather = get_weather(startdate, enddate, headers)
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script>
 var baseurl = 'https://beekeeper.hivehome.com/1.0';
+var hub_name = 'heating';
+
+function get_id(headers) {
+	$.ajax({
+		url: baseurl + '/products',
+		headers: headers,
+		type: 'GET',
+		contentType: 'application/json',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			for (node in json) {
+				if (json[node]['type'] == hub_name) {
+					id_ = json[node]['id']
+				}
+			}
+		}
+	})
+	return id_
+}
 
 function checklogin() {
 	var token = getCookie('token');
@@ -54,22 +59,27 @@ function checklogin() {
 			contentType: 'application/json',
 			data: data,
 			dataType: 'json',
+			async: false,
 			success: function(json) {
 				console.log('success');
-				console.log(json);
-				if ( 'user' in json){
+				if ('user' in json){
 					console.log('authorized');
-					return {"Content-Type": "application/json", "Accept": "application/json", "authorization": token};
+					headers = {"Content-Type": "application/json", "Accept": "application/json", "authorization": token};
 				} else {
-					window.location.replace('index.html')
+					console.log('not authed');
+					headers = null;
 				}
 			},
 			error: function(json) {
 				console.log('Token expired');
-				window.location.replace('index.html')
+				headers = null;
 			}
 		})
-	}
+	} else {
+		console.log('No cookie');
+		headers = null;
+	};
+	return headers;
 }
 
 
@@ -245,13 +255,18 @@ var config = {
 
 window.onload = function() {
 	var headers = checklogin();
-	console.log(headers);
+	console.log('headers: '+headers);
+	if (headers === null) {
+		window.location.replace('index.html');
+	};
+	id_ = get_id(headers);
+	console.log('id_: '+id_)
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
-	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
-	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
-	document.getElementById('tempToSet').value = currentTarget;
-	document.getElementById('boostTempToSet').value = currentTarget;
+//	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
+//	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
+//	document.getElementById('tempToSet').value = currentTarget;
+//	document.getElementById('boostTempToSet').value = currentTarget;
 	if (currentMode == 'BOOST') {
 		document.getElementById('boosting').innerHTML = 'Now Boosting';
 		document.getElementById('boostTime').value = currentBoost;
