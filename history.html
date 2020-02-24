@@ -52,15 +52,11 @@ function get_weather(startdate, enddate, location_id) {
 			days = json['SiteRep']['DV']['Location']['Period'];
 			for (day in days) {
 				the_date = days[day]['value'].replace('Z','T');
-				console.log(the_date)
 				hours = days[day]['Rep'];
 				for (hour in hours) {
-					the_time = hours[hour]['$']/60;
+					the_time = (hours[hour]['$']/60).toString().padStart(2, '0');
 					the_temp = hours[hour]['T'];
 					dt_time = Date.parse(the_date+the_time+':00:00');
-					console.log(the_time);
-					console.log(the_temp);
-					console.log(dt_time);
 					if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
 						to_return[dt_time] = the_temp;
 					}
@@ -335,8 +331,8 @@ for (i in weather) {
 	dataPoints3.push({x: parseInt(i), y: weather[i]});
 }
 
-console.log(dataPoints);
-console.log(dataPoints3);
+//console.log(dataPoints);
+//console.log(dataPoints3);
 
 
 dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints});
