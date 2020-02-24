@@ -21,6 +21,7 @@ if (headers === null) {
 	window.location.replace('index.html');
 };
 
+var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
 var location_id = getCookie('location_id');
 console.log('Location id: '+location_id)
 if (location_id == "") {
@@ -39,8 +40,38 @@ var currentTarget = device_info['state']['target']
 var currentMode = device_info['state']['mode']
 var currentBoost = device_info['state']['boost']
 
+function get_weather(startdate, enddate, location_id) {
+	to_return = {};
+	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/'+location_id+'?res=hourly&key='+met_office_key;
+	$.ajax({
+		url: weather_url,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			days = json['SiteRep']['DV']['Location']['Period'];
+			for (day in days) {
+				the_date = days[day]['value'].replace('Z','T');
+				console.log(the_date)
+				hours = days[day]['Rep'];
+				for (hour in hours) {
+					the_time = hours[hour]['$']/60;
+					the_temp = hours[hour]['T'];
+					dt_time = Date.parse(the_date+the_time+':00:00');
+					console.log(the_time);
+					console.log(the_temp);
+					console.log(dt_time);
+					if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
+						to_return[dt_time] = the_temp;
+					}
+				}
+			}
+		}
+	});
+	return to_return;
+}
+
 function get_location_id(latitude, longitude) {
-	var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
 	var weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key='+met_office_key;
 	$.ajax({
 		url: weather_url,
@@ -298,16 +329,18 @@ for (i in temps) {
 	dataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
 }
 
-/*
+weather = get_weather(startdate, enddate, location_id);
 
-weather = get_weather(startdate, enddate, headers)
-for i in sorted(weather.keys()):
-	print("dataPoints3.push({x: "+str(i)+", y: "+str(weather[i])+" });")
+for (i in weather) {
+	dataPoints3.push({x: parseInt(i), y: weather[i]});
+}
 
-*/
+console.log(dataPoints);
+console.log(dataPoints3);
+
 
 dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints});
-//dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
+dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
 var nodesurl = baseurl+'/nodes/heating/'+id_;
 
 var config = {
