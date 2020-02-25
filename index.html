@@ -8,6 +8,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="functions.js"></script>
 <script>
+
 function login() {
 	username = document.getElementById("username").value;
 	password = document.getElementById("password").value;
@@ -35,29 +36,13 @@ function login() {
 	})
 }
 
-function checklogin() {
-	var token = getCookie('token');
-	if (token != "") {
-		data = JSON.stringify({"homes": false, "products": false, "devices": false, "actions": false, "token": token});
-		$.ajax({
-			url: baseurl + '/auth/admin-login',
-			type: 'POST',
-			contentType: 'application/json',
-			data: data,
-			dataType: 'json',
-			success: function(json) {
-				console.log('success');
-				console.log(json);
-				if ('user' in json){
-					document.getElementById("loginstate").innerHTML = "You are now logged in.";
-					document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />"
-				}
-			},
-			error: function(json) {
-				console.log('Token expired');
-			}
-		})
-	}
+window.onload = function() {
+	headlatlong = checklogin();
+	var headers = headlatlong[0];
+	if (headers != null) {
+		document.getElementById("loginstate").innerHTML = "You are now logged in.";
+		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />"
+	};
 }
 
 </script>
@@ -68,7 +53,7 @@ function checklogin() {
 }
 </style>
 </head>
-<body onload="checklogin()">
+<body>
 
 <div id="loginstate">You are not logged in.</div><br /><br />
 <div id="mainbody"><label class="l1" for="username">Username: </label><input id="username"><br />

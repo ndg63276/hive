@@ -1,3 +1,5 @@
+var baseurl = 'https://beekeeper.hivehome.com/1.0';
+
 function getCookie(cname) {
 	var name = cname + "=";
 	var ca = document.cookie.split(';');
@@ -20,4 +22,39 @@ function setCookie(cname, cvalue, exdays) {
 	document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
-var baseurl = 'https://beekeeper.hivehome.com/1.0';
+function checklogin() {
+	var token = getCookie('token');
+	var latitude = 0;
+	var longitude = 0;
+	if (token != "") {
+		data = JSON.stringify({"homes": false, "products": false, "devices": false, "actions": false, "token": token});
+		$.ajax({
+			url: baseurl + '/auth/admin-login',
+			type: 'POST',
+			contentType: 'application/json',
+			data: data,
+			dataType: 'json',
+			async: false,
+			success: function(json) {
+				console.log('success');
+				if ('user' in json){
+					console.log('authorized');
+					headers = {"Content-Type": "application/json", "Accept": "application/json", "authorization": token};
+					latitude = json['user']['latitude'];
+					longitude = json['user']['longitude'];
+				} else {
+					console.log('not authed');
+					headers = null;
+				}
+			},
+			error: function(json) {
+				console.log('Token expired');
+				headers = null;
+			}
+		})
+	} else {
+		console.log('No cookie');
+		headers = null;
+	};
+	return [headers, latitude, longitude];
+}
