@@ -22,6 +22,27 @@ function setCookie(cname, cvalue, exdays) {
 	document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
+function do_login(username, password) {
+	headers = {"Content-Type": "application/json", "Accept": "application/json"};
+	payload = {"username": username, "password": password};
+	to_return = false;
+	$.ajax({
+		url: baseurl + '/global/login',
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(payload),
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			if ('token' in json) {
+				setCookie('token', json['token'], 1)
+				to_return = true;
+			}
+		},
+	})
+	return to_return;
+}
+
 function checklogin() {
 	var token = getCookie('token');
 	var latitude = 0;

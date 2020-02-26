@@ -12,28 +12,13 @@
 function login() {
 	username = document.getElementById("username").value;
 	password = document.getElementById("password").value;
-	headers = {"Content-Type": "application/json", "Accept": "application/json"}
-	payload = {"username": username, "password": password}
-	$.ajax({
-		url: baseurl + '/global/login',
-		type: 'POST',
-		headers: headers,
-		data: JSON.stringify(payload),
-		dataType: 'json',
-		success: function(json) {
-			console.log(json);
-			if ('token' in json) {
-				console.log('success');
-				setCookie('token', json['token'], 365)
-				document.getElementById("loginstate").innerHTML = 'You are now logged in.';
-				document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
-			}
-		},
-		error: function(json) {
-			console.log('Error');
-			console.log(json);
-		}
-	})
+	success = do_login(username, password);
+	if (success) {
+		document.getElementById("loginstate").innerHTML = 'You are now logged in.';
+		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
+	} else {
+		document.getElementById("loginstate").innerHTML = 'Login failed';
+	}
 }
 
 window.onload = function() {
@@ -41,7 +26,13 @@ window.onload = function() {
 	var headers = headlatlong[0];
 	if (headers != null) {
 		document.getElementById("loginstate").innerHTML = "You are now logged in.";
-		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />"
+		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
+	} else {
+		document.getElementById("loginstate").innerHTML = "You are not logged in.";
+		document.getElementById("mainbody").innerHTML = "<label class='l1' for='username'>Username: </label><input id='username'><br />";
+		document.getElementById("mainbody").innerHTML += "<label class='l1' for='password'>Password: </label><input type='password' id='password'><br /><br />";
+		document.getElementById("mainbody").innerHTML += "<input type='submit' value='Submit' onclick='return login();'>";
+		document.getElementById('password').onkeydown = function(e){if(e.keyCode == 13){login();}};
 	};
 }
 
@@ -55,8 +46,6 @@ window.onload = function() {
 </head>
 <body>
 
-<div id="loginstate">You are not logged in.</div><br /><br />
-<div id="mainbody"><label class="l1" for="username">Username: </label><input id="username"><br />
-<label class="l1" for="password">Password: </label><input type="password" id="password"><br /><br />
-<input type="submit" value="Submit" onclick="return login();"></div>
+<div id="loginstate"></div><br /><br />
+<div id="mainbody"></div>
 </body></html>
