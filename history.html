@@ -1,0 +1,411 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>My Hive Temperatures</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+<script src="functions.js"></script>
+<script>
+var hub_name = 'heating';
+headlatlong = checklogin();
+var headers = headlatlong[0];
+var latitude = headlatlong[1];
+var longitude = headlatlong[2];
+console.log('headers: '+headers);
+console.log('latitude: '+latitude);
+if (headers === null) {
+	window.location.replace('index.html');
+};
+
+var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
+var location_id = getCookie('location_id');
+console.log('Location id: '+location_id)
+if (location_id == "") {
+	location_id = get_location_id(latitude, longitude);
+	setCookie('location_id', location_id, 365)
+	console.log('Location id: '+location_id)
+}
+
+id_ = get_id(headers);
+console.log('id_: '+id_);
+device_info = get_device_info(headers, hub_name);
+console.log('device info: '+device_info)
+
+var currentTemp = device_info['props']['temperature']
+var currentTarget = device_info['state']['target']
+var currentMode = device_info['state']['mode']
+var currentBoost = device_info['state']['boost']
+
+function get_weather(startdate, enddate, location_id) {
+	to_return = {};
+	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/'+location_id+'?res=hourly&key='+met_office_key;
+	$.ajax({
+		url: weather_url,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			days = json['SiteRep']['DV']['Location']['Period'];
+			for (day in days) {
+				the_date = days[day]['value'].replace('Z','T');
+				hours = days[day]['Rep'];
+				for (hour in hours) {
+					the_time = (hours[hour]['$']/60).toString().padStart(2, '0');
+					the_temp = hours[hour]['T'];
+					dt_time = Date.parse(the_date+the_time+':00:00');
+					if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
+						to_return[dt_time] = the_temp;
+					}
+				}
+			}
+		}
+	});
+	return to_return;
+}
+
+function get_location_id(latitude, longitude) {
+	var weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key='+met_office_key;
+	$.ajax({
+		url: weather_url,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			var min_dist = 99999;
+			var locations_list = json['Locations']['Location'];
+			for (location_number in locations_list) {
+				this_lat = locations_list[location_number]['latitude'];
+				this_long = locations_list[location_number]['longitude'];
+				this_dist = Math.sqrt(Math.pow(latitude-this_lat,2) + Math.pow(longitude-this_long,2));
+				if (this_dist < min_dist) {
+					min_dist = this_dist
+					min_dist_id = locations_list[location_number]['id']
+				}
+			}
+		}
+	});
+	return min_dist_id;
+}
+
+function get_device_info(headers, hub_name) {
+	$.ajax({
+		url: baseurl + '/products',
+		headers: headers,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			for (device in json) {
+				if (json[device]['type'] == hub_name) {
+					heating_device = json[device]
+				}
+			}
+		}
+	});
+	return heating_device;
+}
+
+function get_temps(headers, id_, startdate, enddate) {
+	start = startdate.getTime();
+	end = enddate.getTime();
+	var j = {}
+	while (!('data' in j)) {
+		console.log('getting temps');
+		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'};
+		$.ajax({
+			url: baseurl + '/history/heating/' + id_,
+			headers: headers,
+			type: 'GET',
+			data: params,
+			dataType: 'json',
+			async: false,
+			success: function(json) {
+				console.log('success in get_temps')
+				j = json;
+			},
+			error: function(json) {
+				console.log('error in get_temps')
+			}
+		});
+		start += 1000;
+	}
+	console.log(j);
+	temps = j['data'];
+	return temps;
+}
+
+function get_id(headers) {
+	$.ajax({
+		url: baseurl + '/products',
+		headers: headers,
+		type: 'GET',
+		contentType: 'application/json',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			for (node in json) {
+				if (json[node]['type'] == hub_name) {
+					id_ = json[node]['id']
+				}
+			}
+		}
+	})
+	return id_
+}
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+
+var startdate = new Date();
+if (urlParams.has('start')) {
+	var start = urlParams.get('start');
+	if (start.startsWith('20')) {
+		startyear = start.substring(0, 4);
+		startmonth = start.substring(4, 6);
+		startday = start.substring(6, 8);
+		starthour = 0;
+		startmin = 0;
+		startsec = 0;
+		if (start.length > 8) { starthour = start.substring(8, 10); }
+		if (start.length > 10) { startmin = start.substring(10, 12); }
+		if (start.length > 12) { startsec = start.substring(12, 14); }
+		startdate = new Date(startyear, startmonth-1, startday, starthour, startmin, startsec);
+	}
+	var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
+	var match = start.match(pattern);
+	if (match != null) {
+		if (match[2].includes('year')) {
+			startdate.setFullYear(startdate.getFullYear() - match[1]);
+		}
+		if (match[2].includes('month')) {
+			startdate.setMonth(startdate.getMonth() - match[1]);
+		}
+		if (match[2].includes('week')) {
+			startdate.setDate(startdate.getDate() - match[1] * 7);
+		}
+		if (match[2].includes('day')) {
+			startdate.setDate(startdate.getDate() - match[1]);
+		}
+		if (match[2].includes('hour')) {
+			startdate.setHours(startdate.getHours() - match[1]);
+		}
+		if (match[2].includes('min')) {
+			startdate.setMinutes(startdate.getMinutes() - match[1]);
+		}
+		if (match[2].includes('sec')) {
+			startdate.setSeconds(startdate.getSeconds() - match[1]);
+		}
+	}
+} else {
+	startdate.setDate(startdate.getDate() - 1);
+}
+
+var enddate = new Date();
+if (urlParams.has('end')) {
+	var end = urlParams.get('end');
+	if (end.startsWith('20')) {
+		endyear = end.substring(0, 4);
+		endmonth = end.substring(4, 6);
+		endday = end.substring(6, 8);
+		endhour = 0;
+		endmin = 0;
+		endsec = 0;
+		if (end.length > 8) { endhour = end.substring(8, 10); }
+		if (end.length > 10) { endmin = end.substring(10, 12); }
+		if (end.length > 12) { endsec = end.substring(12, 14); }
+		enddate = new Date(endyear, endmonth-1, endday, endhour, endmin, endsec);
+	}
+	var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
+	var match = end.match(pattern);
+	if (match != null) {
+		if (match[2].includes('year')) {
+			enddate.setFullYear(enddate.getFullYear() - match[1]);
+		}
+		if (match[2].includes('month')) {
+			enddate.setMonth(enddate.getMonth() - match[1]);
+		}
+		if (match[2].includes('week')) {
+			enddate.setDate(enddate.getDate() - match[1] * 7);
+		}
+		if (match[2].includes('day')) {
+			enddate.setDate(enddate.getDate() - match[1]);
+		}
+		if (match[2].includes('hour')) {
+			enddate.setHours(enddate.getHours() - match[1]);
+		}
+		if (match[2].includes('min')) {
+			enddate.setMinutes(enddate.getMinutes() - match[1]);
+		}
+		if (match[2].includes('sec')) {
+			enddate.setSeconds(enddate.getSeconds() - match[1]);
+		}
+	}
+}
+
+if (startdate.getFullYear() === enddate.getFullYear() &&
+	startdate.getMonth() === startdate.getMonth() &&
+	startdate.getDate() === enddate.getDate()) {
+		var tooltipFormat="HH:mm:ss";
+} else {
+		var tooltipFormat="DD-MM-YY HH:mm:ss";
+}
+
+temps = get_temps(headers, id_, startdate, enddate)
+
+var pagelink=location.origin+location.pathname;
+var dataSets = [];
+var dataPoints = [];
+var dataPoints2 = [];
+var dataPoints3 = [];
+
+for (i in temps) {
+	dataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
+}
+
+weather = get_weather(startdate, enddate, location_id);
+
+for (i in weather) {
+	dataPoints3.push({x: parseInt(i), y: weather[i]});
+}
+
+//console.log(dataPoints);
+//console.log(dataPoints3);
+
+
+dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints});
+dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
+var nodesurl = baseurl+'/nodes/heating/'+id_;
+
+var config = {
+	type: 'line',
+	data: { datasets: dataSets },
+	options: {
+		title: { display: false },
+		legend: {
+			display: true,
+			position: 'bottom',
+			labels: { fontSize: 18, usePointStyle: true }
+		},
+		scales: {
+			xAxes: [{
+				type: 'time',
+				time: { tooltipFormat: tooltipFormat },
+				display: true,
+				scaleLabel: { display: false }
+			}],
+			yAxes: [{
+				id: 'left-y-axis',
+				display: true,
+				position: 'left',
+				type: 'linear',
+				scaleLabel: { display: false }
+			}]
+		}
+	}
+};
+
+window.onload = function() {
+	var ctx = document.getElementById('myChart').getContext('2d');
+	var myChart = new Chart(ctx, config);
+	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
+	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
+	document.getElementById('tempToSet').value = currentTarget;
+	document.getElementById('boostTempToSet').value = currentTarget;
+	if (currentMode == 'BOOST') {
+		document.getElementById('boosting').innerHTML = 'Now Boosting';
+		document.getElementById('boostTime').value = currentBoost;
+		document.getElementById('boostOrStop').innerHTML = 'Stop';
+	}
+};
+
+
+function setTemp() {
+	temp = document.getElementById("tempToSet").value;
+	console.log('set '+temp);
+	var data={'target': temp};
+	$.ajax({
+		url: nodesurl,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function () {
+			console.log('success')
+		}
+	});
+	location.reload();
+}
+
+function boostOrStop() {
+	console.log('boostOrStop')
+	if (document.getElementById('boostOrStop').innerHTML == 'Stop') {
+		stopBoost();
+	} else {
+		boostTemp();
+	}
+}
+
+function boostTemp() {
+	document.getElementById('boostOrStop').innerHTML = 'Boosting...'
+	temp = document.getElementById("boostTempToSet").value;
+	time = document.getElementById("boostTime").value;
+	console.log('boost '+temp+' '+time);
+	var data={'mode': 'BOOST', 'boost': time, 'target': temp};
+	$.ajax({
+		url: nodesurl,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function (json) {
+			console.log('success');
+			console.log(json);
+		}
+	});
+	setTimeout(function() {location.reload();}, 5000);
+}
+
+function stopBoost() {
+	document.getElementById('boostOrStop').innerHTML = 'Stopping...'
+	var data={'mode': 'SCHEDULE'};
+	$.ajax({
+		url: nodesurl,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		success: function (json) {
+			console.log('success');
+			console.log(json);
+		}
+	});
+	setTimeout(function() {location.reload();}, 5000);
+}
+
+</script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+
+<table border=0 align=center width=90%><tr align=center><th width=20%>Current Temperature</th><th width=20%>Current Setpoint</th><th width=20%>New setpoint</th><th width=20% id='boosting'>Boost</th><th></th></tr>
+<tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
+<td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
+<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td><td style='text-align:left;'><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
+</tr></table>
+
+<canvas id="myChart" width="800" height="400"></canvas>
+
+<br /><br /><center><form>
+<input type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.reload(true);' value='Refresh' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.href=pagelink+"?start=-24hours&end=now";' value='Last 24 hours' style='font-size:20px;height:100px;width:200px'>
+<input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>
+
+</form></center><br />
+<a href='schedule.html'>Schedule View</a>
+
+</body>
+</html>
