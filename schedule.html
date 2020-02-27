@@ -14,7 +14,6 @@ console.log(headers);
 if (headers == null) {
 	window.location.replace('index.html');
 };
-var hub_name = 'heating'
 
 function loadSchedule() {
 	clearForm();
@@ -73,19 +72,26 @@ function openfile(e) {
 function switchHubName(newHubName) {
 	clearForm();
 	hub_name = newHubName;
-	document.getElementById('hubName').innerHTML = 'Current Mode: '+hub_name;
+	document.getElementById('hubName').innerHTML = 'Current Mode: '+capitalise(hub_name);
 }
 
 window.onload = function() {
     clearForm();
+    var products = getProducts(headers);
+    el = document.getElementById('products');
+    el.innerHTML = "";
+    for (product in products) {
+		device_name = products[product]['type'];
+		el.innerHTML += "<button height=10 onclick='switchHubName(\""+device_name+"\");'>"+capitalise(device_name)+"</button> "
+    }
+    var hub_name = products[0]['type'];
+    document.getElementById('hubName').innerHTML = 'Current Mode: '+capitalise(hub_name);
 };
 
 </script>
 </head><body>
-Step 1. Choose Mode:<br />
-<button height=10 onclick='switchHubName("heating");'>Heating</button>
-<button height=10 onclick='switchHubName("hotwater");'>Hot Water</button>
-<br /><br /><div id='hubName'>Current Mode: heating</div><br />
+Step 1. Choose Mode:<br /><div id='products'>Loading devices...</div>
+<br /><br /><div id='hubName'></div><br />
 Step 2. Load schedule from Hive or from a file:<br />
 <button height=10 onclick='loadSchedule();'>Get Schedule From Hive</button>
 <button onclick="document.getElementById('file-input').click();">Load schedule from file</button>

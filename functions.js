@@ -93,7 +93,7 @@ function getSchedule(headers) {
 	return to_return
 }
 
-function getProducts() {
+function getProducts(headers) {
 	to_return = {};
 	$.ajax({
 		url: baseurl+'/products',
@@ -189,4 +189,8 @@ function loadJsonIntoForm(jsonToLoad) {
 			document.getElementById(day+num+'time').value=hours+':'+mins;
 		}
 	}
+}
+
+function capitalise(str) {
+	return str.charAt(0).toUpperCase() + str.slice(1)
 }
