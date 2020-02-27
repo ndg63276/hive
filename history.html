@@ -11,10 +11,10 @@
 <script src="functions.js"></script>
 <script>
 var hub_name = 'heating';
-headlatlong = checklogin();
-var headers = headlatlong[0];
-var latitude = headlatlong[1];
-var longitude = headlatlong[2];
+user_info = checklogin();
+var headers = user_info['headers'];
+var latitude = user_info['user']['latitude'];
+var longitude = user_info['user']['longitude'];
 console.log('headers: '+headers);
 console.log('latitude: '+latitude);
 if (headers === null) {

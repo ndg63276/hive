@@ -8,24 +8,18 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="functions.js"></script>
 <script>
-var token = getCookie('token');
-var headers = {"Content-Type": "application/json", "Accept": "application/json", "authorization": token}
+user_info = checklogin();
+var headers = user_info['headers'];
+console.log(headers);
+if (headers == null) {
+	window.location.replace('index.html');
+};
 var hub_name = 'heating'
 
-function getSchedule() {
-	$.ajax({
-		url: baseurl+'/products',
-		type: 'GET',
-		headers: headers,
-		success: function (json) {
-			for (device in json) {
-				if (json[device]['type'] == hub_name) {
-					content = json[device]['state']['schedule'];
-					loadJsonIntoForm(content);
-				}
-			}
-		}
-	});
+function loadSchedule() {
+	clearForm();
+	schedule = getSchedule(headers);
+	loadJsonIntoForm(schedule);
 }
 
 function clearForm() {
@@ -37,113 +31,28 @@ function clearForm() {
 	}
 }
 
-function createJsonFromForm() {
-	var json = {};
-	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
-		json[day] = [];
-		for (num of Array(6).keys()) {
-			start = document.getElementById(day+num+'time').value;
-			hours = parseInt(start.split(':')[0]);
-			mins = parseInt(start.split(':')[1]);
-			time = 60*hours + mins
-			val = document.getElementById(day+num).value;
-			if (hub_name == 'heating') {
-				rawVal = val.replace('°C','')
-				if (rawVal != '') {
-					target = parseFloat(rawVal);
-				} else {
-					target = ''
-				}
-				targetDict = {"target": target};
-			} else {
-				if (val == 'ON' || val == 'OFF') {
-					target = val
-				} else {
-					target = ''
-				}
-				targetDict = {"status": target};
-			}
-			if (target != '') {
-				json[day].push({"value":targetDict,"start":time});
-			}
-		}
-	}
-	console.log(json);
-	json_div = document.getElementById("text-val");
-	json_div.style.display = "none";
-	json_div.innerHTML = JSON.stringify(json);
-}
-
-function loadJsonIntoForm(json) {
-	clearForm();
-	json_div = document.getElementById("text-val");
-	json_div.style.display = "none";
-	json_div.innerHTML = JSON.stringify(json);
-	for (day in json) {
-		for (num in json[day]) {
-			if (hub_name == 'heating') {
-				target = JSON.stringify(json[day][num]['value']['target'])+'°C';
-			} else {
-				target = json[day][num]['value']['status'];
-			}
-			start = JSON.stringify(json[day][num]['start']);
-			hours = ('00'+Math.floor(start/60)).slice(-2);
-			mins = ('00'+start%60).slice(-2);
-			document.getElementById(day+num).value = target;
-			document.getElementById(day+num+'time').value=hours+':'+mins;
-		}
-	}
-}
-
-function getProducts() {
-	return $.ajax({
-		url: baseurl+'/products',
-		type: 'GET',
-		async: false,
-		headers: headers,
-	})
-}
-
-
-function sendSchedule() {
+function updateSchedule() {
 	document.getElementById('success').innerHTML = 'Sending...';
-	createJsonFromForm();
-	var schedule = JSON.parse(document.getElementById("text-val").innerHTML);
-	var products = getProducts();
-	var json = JSON.parse(products.responseText);
-	var id = '';
-	for (device in json) {
-		if (json[device]['type'] == hub_name) {
-			id = json[device]['id'];	
-		}
+	var id = get_id(hub_name)
+	if (id) {
+		var schedule = createJsonFromForm()
+		var data = JSON.stringify({'schedule': schedule});
+		var success = sendSchedule(headers, hub_name, id, data);
 	}
-	console.log(id);
-	var data = JSON.stringify({'schedule': schedule});
-	console.log(data);
-	$.ajax({
-		url: baseurl+'/nodes/heating/'+id,
-		type: 'POST',
-		headers: headers,
-		data: data,
-		success: function (json) {
-			console.log('success');
-			document.getElementById('success').innerHTML = 'Success!';
-		},
-		error: function () {
-			console.log('error');
-			document.getElementById('success').innerHTML = 'Error';
-		}
-	})
+	if (success) {
+		document.getElementById('success').innerHTML = 'Success!';
+	} else {
+		document.getElementById('success').innerHTML = 'Error';
+	}
 }
 
 
 function download() {
-	createJsonFromForm();
+	var json = JSON.stringify(createJsonFromForm());
 	var date = new Date().toISOString().substr(0, 16);
-	var text = document.getElementById("text-val").innerHTML;
 	var filename = "hive_"+hub_name+"_schedule_"+date+".txt";
 	var element = document.createElement('a');
-	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(json));
 	element.setAttribute('download', filename);
 	element.style.display = 'none';
 	document.body.appendChild(element);
@@ -152,14 +61,12 @@ function download() {
 }
 
 function openfile(e) {
-	console.log('openfile');
-	console.log(e);
 	var file = e[0]; 
 	var reader = new FileReader();
 	reader.readAsText(file,'UTF-8');
 	reader.onload = readerEvent => {
-		var content = JSON.parse(readerEvent.target.result)
-		loadJsonIntoForm(content);
+		var file_content = JSON.parse(readerEvent.target.result)
+		loadJsonIntoForm(file_content);
 	}
 }
 
@@ -169,9 +76,9 @@ function switchHubName(newHubName) {
 	document.getElementById('hubName').innerHTML = 'Current Mode: '+hub_name;
 }
 
-$(function(){
+window.onload = function() {
     clearForm();
-});
+};
 
 </script>
 </head><body>
@@ -180,10 +87,9 @@ Step 1. Choose Mode:<br />
 <button height=10 onclick='switchHubName("hotwater");'>Hot Water</button>
 <br /><br /><div id='hubName'>Current Mode: heating</div><br />
 Step 2. Load schedule from Hive or from a file:<br />
-<button height=10 onclick='getSchedule();'>Get Schedule From Hive</button>
+<button height=10 onclick='loadSchedule();'>Get Schedule From Hive</button>
 <button onclick="document.getElementById('file-input').click();">Load schedule from file</button>
-<br /><br />
-<div id="text-val"></div><br/>
+<br /><br /><br/>
 Step 3. Edit the schedule:
 <table border=0>
 <tr><td>Monday</td><td><input style="width: 60px;" id="monday0">@<input style="width: 60px;" id="monday0time">&nbsp;</td>
@@ -236,8 +142,7 @@ Step 4. Save to a backup file:<br />
 <input id="file-input" type="file" name="name" style="display: none;" onchange='openfile(this.files);'/>
 <br /><br />
 Step 5. Update the Hive schedule:<br />
-<button height=10 onclick='sendSchedule();'>Send Schedule To Hive</button>
+<button height=10 onclick='updateSchedule();'>Send Schedule To Hive</button>
 <div id='success'></div>
-<!-- button height=10 onclick='createJsonFromForm();'>Generate JSON</button -->
 <br /><br /><a href='history.html'>History View</a>
 </html>

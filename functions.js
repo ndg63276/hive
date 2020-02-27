@@ -45,8 +45,7 @@ function do_login(username, password) {
 
 function checklogin() {
 	var token = getCookie('token');
-	var latitude = 0;
-	var longitude = 0;
+	var to_return = {}
 	if (token != "") {
 		data = JSON.stringify({"homes": false, "products": false, "devices": false, "actions": false, "token": token});
 		$.ajax({
@@ -60,22 +59,134 @@ function checklogin() {
 				console.log('success');
 				if ('user' in json){
 					console.log('authorized');
-					headers = {"Content-Type": "application/json", "Accept": "application/json", "authorization": token};
-					latitude = json['user']['latitude'];
-					longitude = json['user']['longitude'];
+					to_return['headers'] = {"Content-Type": "application/json", "Accept": "application/json", "authorization": token};
+					to_return['user'] = json['user'];
 				} else {
 					console.log('not authed');
-					headers = null;
 				}
 			},
 			error: function(json) {
 				console.log('Token expired');
-				headers = null;
 			}
 		})
 	} else {
 		console.log('No cookie');
-		headers = null;
 	};
-	return [headers, latitude, longitude];
+	return to_return;
+}
+
+function getSchedule(headers) {
+	to_return = {}
+	$.ajax({
+		url: baseurl+'/products',
+		type: 'GET',
+		headers: headers,
+		async: false,
+		success: function (json) {
+			for (device in json) {
+				if (json[device]['type'] == hub_name) {
+					to_return = json[device]['state']['schedule'];
+				}
+			}
+		}
+	});
+	return to_return
+}
+
+function getProducts() {
+	to_return = {};
+	$.ajax({
+		url: baseurl+'/products',
+		type: 'GET',
+		async: false,
+		headers: headers,
+		success: function (json) {
+			to_return = json
+		}
+	})
+	return to_return;
+}
+
+function get_id(hub_name) {
+	var devices = getProducts();
+	var id = '';
+	for (device in devices) {
+		if (devices[device]['type'] == hub_name) {
+			id = devices[device]['id'];	
+		}
+	}
+	return id;
+}
+
+function sendSchedule(headers, hub_name, id, data) {
+	to_return = false;
+	$.ajax({
+		url: baseurl+'/nodes/'+hub_name+'/'+id,
+		type: 'POST',
+		headers: headers,
+		data: data,
+		async: false,
+		success: function (json) {
+			console.log('success');
+			to_return = true;
+		},
+		error: function () {
+			console.log('error');
+		}
+	});
+	return to_return;
+}
+
+function createJsonFromForm() {
+	var json = {};
+	for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+		json[day] = [];
+		for (num of Array(6).keys()) {
+			start = document.getElementById(day+num+'time').value;
+			hours = parseInt(start.split(':')[0]);
+			mins = parseInt(start.split(':')[1]);
+			time = 60*hours + mins
+			val = document.getElementById(day+num).value;
+			if (hub_name == 'heating') {
+				rawVal = val.replace('°C','')
+				if (rawVal != '') {
+					target = parseFloat(rawVal);
+				} else {
+					target = ''
+				}
+				targetDict = {"target": target};
+			} else {
+				if (val == 'ON' || val == 'OFF') {
+					target = val
+				} else {
+					target = ''
+				}
+				targetDict = {"status": target};
+			}
+			if (target != '') {
+				to_push = {"value":targetDict,"start":time}
+				json[day].push(to_push);
+			}
+		}
+	}
+	console.log(json);
+	return json;
+}
+
+function loadJsonIntoForm(jsonToLoad) {
+	clearForm();
+	for (day in jsonToLoad) {
+		for (num in jsonToLoad[day]) {
+			if (hub_name == 'heating') {
+				target = JSON.stringify(jsonToLoad[day][num]['value']['target'])+'°C';
+			} else {
+				target = jsonToLoad[day][num]['value']['status'];
+			}
+			start = JSON.stringify(jsonToLoad[day][num]['start']);
+			hours = ('00'+Math.floor(start/60)).slice(-2);
+			mins = ('00'+start%60).slice(-2);
+			document.getElementById(day+num).value = target;
+			document.getElementById(day+num+'time').value=hours+':'+mins;
+		}
+	}
 }

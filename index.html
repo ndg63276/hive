@@ -22,10 +22,11 @@ function login() {
 }
 
 window.onload = function() {
-	headlatlong = checklogin();
-	var headers = headlatlong[0];
+	user_info = checklogin();
+	var headers = user_info['headers'];
 	if (headers != null) {
-		document.getElementById("loginstate").innerHTML = "You are now logged in.";
+		var email = user_info['user']['email']
+		document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
 		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
 	} else {
 		document.getElementById("loginstate").innerHTML = "You are not logged in.";
