@@ -10,14 +10,14 @@
 <script>
 user_info = checklogin();
 var headers = user_info['headers'];
-console.log(headers);
 if (headers == null) {
 	window.location.replace('index.html');
 };
+var hub_name = '';
 
 function loadSchedule() {
 	clearForm();
-	schedule = getSchedule(headers);
+	schedule = getSchedule(headers, hub_name);
 	loadJsonIntoForm(schedule);
 }
 
@@ -32,11 +32,12 @@ function clearForm() {
 
 function updateSchedule() {
 	document.getElementById('success').innerHTML = 'Sending...';
-	var id = get_id(hub_name)
+	var device = get_device_info(headers, hub_name);
+	var id = device['id']
 	if (id) {
 		var schedule = createJsonFromForm()
-		var data = JSON.stringify({'schedule': schedule});
-		var success = sendSchedule(headers, hub_name, id, data);
+		var data = {'schedule': schedule};
+		var success = sendData(headers, hub_name, id, data);
 	}
 	if (success) {
 		document.getElementById('success').innerHTML = 'Success!';
@@ -76,16 +77,15 @@ function switchHubName(newHubName) {
 }
 
 window.onload = function() {
-    clearForm();
-    var products = getProducts(headers);
-    el = document.getElementById('products');
-    el.innerHTML = "";
-    for (product in products) {
+	clearForm();
+	var products = getProducts(headers);
+	el = document.getElementById('products');
+	el.innerHTML = "";
+	for (product in products) {
 		device_name = products[product]['type'];
 		el.innerHTML += "<button height=10 onclick='switchHubName(\""+device_name+"\");'>"+capitalise(device_name)+"</button> "
-    }
-    var hub_name = products[0]['type'];
-    document.getElementById('hubName').innerHTML = 'Current Mode: '+capitalise(hub_name);
+	}
+	switchHubName(products[0]['type']);
 };
 
 </script>

@@ -75,21 +75,14 @@ function checklogin() {
 	return to_return;
 }
 
-function getSchedule(headers) {
+function getSchedule(headers, hub_name) {
 	to_return = {}
-	$.ajax({
-		url: baseurl+'/products',
-		type: 'GET',
-		headers: headers,
-		async: false,
-		success: function (json) {
-			for (device in json) {
-				if (json[device]['type'] == hub_name) {
-					to_return = json[device]['state']['schedule'];
-				}
-			}
+	devices = getProducts(headers);
+	for (device in devices) {
+		if (devices[device]['type'] == hub_name) {
+			to_return = devices[device]['state']['schedule'];
 		}
-	});
+	}
 	return to_return
 }
 
@@ -107,27 +100,29 @@ function getProducts(headers) {
 	return to_return;
 }
 
-function get_id(hub_name) {
-	var devices = getProducts();
-	var id = '';
+function get_device_info(headers, hub_name) {
+	to_return = {}
+	var devices = getProducts(headers);
 	for (device in devices) {
 		if (devices[device]['type'] == hub_name) {
-			id = devices[device]['id'];	
+			to_return = devices[device]
 		}
 	}
-	return id;
+	return to_return;
 }
 
-function sendSchedule(headers, hub_name, id, data) {
+function sendData(headers, hub_name, id_, data) {
 	to_return = false;
 	$.ajax({
-		url: baseurl+'/nodes/'+hub_name+'/'+id,
+		url: baseurl+'/nodes/'+hub_name+'/'+id_,
 		type: 'POST',
 		headers: headers,
-		data: data,
+		data: JSON.stringify(data),
+		dataType: 'json',
 		async: false,
 		success: function (json) {
 			console.log('success');
+			console.log(json);
 			to_return = true;
 		},
 		error: function () {
@@ -135,7 +130,7 @@ function sendSchedule(headers, hub_name, id, data) {
 		}
 	});
 	return to_return;
-}
+} 
 
 function createJsonFromForm() {
 	var json = {};

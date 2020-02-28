@@ -15,30 +15,23 @@ user_info = checklogin();
 var headers = user_info['headers'];
 var latitude = user_info['user']['latitude'];
 var longitude = user_info['user']['longitude'];
-console.log('headers: '+headers);
-console.log('latitude: '+latitude);
 if (headers === null) {
 	window.location.replace('index.html');
 };
 
 var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
 var location_id = getCookie('location_id');
-console.log('Location id: '+location_id)
 if (location_id == "") {
 	location_id = get_location_id(latitude, longitude);
 	setCookie('location_id', location_id, 365)
-	console.log('Location id: '+location_id)
 }
 
-id_ = get_id(headers);
-console.log('id_: '+id_);
 device_info = get_device_info(headers, hub_name);
-console.log('device info: '+device_info)
-
-var currentTemp = device_info['props']['temperature']
-var currentTarget = device_info['state']['target']
-var currentMode = device_info['state']['mode']
-var currentBoost = device_info['state']['boost']
+var id_ = device_info['id'];
+var currentTemp = device_info['props']['temperature'];
+var currentTarget = device_info['state']['target'];
+var currentMode = device_info['state']['mode'];
+var currentBoost = device_info['state']['boost'];
 
 function get_weather(startdate, enddate, location_id) {
 	to_return = {};
@@ -91,24 +84,6 @@ function get_location_id(latitude, longitude) {
 	return min_dist_id;
 }
 
-function get_device_info(headers, hub_name) {
-	$.ajax({
-		url: baseurl + '/products',
-		headers: headers,
-		type: 'GET',
-		dataType: 'json',
-		async: false,
-		success: function(json) {
-			for (device in json) {
-				if (json[device]['type'] == hub_name) {
-					heating_device = json[device]
-				}
-			}
-		}
-	});
-	return heating_device;
-}
-
 function get_temps(headers, id_, startdate, enddate) {
 	start = startdate.getTime();
 	end = enddate.getTime();
@@ -117,7 +92,7 @@ function get_temps(headers, id_, startdate, enddate) {
 		console.log('getting temps');
 		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'};
 		$.ajax({
-			url: baseurl + '/history/heating/' + id_,
+			url: baseurl + '/history/'+hub_name+'/' + id_,
 			headers: headers,
 			type: 'GET',
 			data: params,
@@ -136,25 +111,6 @@ function get_temps(headers, id_, startdate, enddate) {
 	console.log(j);
 	temps = j['data'];
 	return temps;
-}
-
-function get_id(headers) {
-	$.ajax({
-		url: baseurl + '/products',
-		headers: headers,
-		type: 'GET',
-		contentType: 'application/json',
-		dataType: 'json',
-		async: false,
-		success: function(json) {
-			for (node in json) {
-				if (json[node]['type'] == hub_name) {
-					id_ = json[node]['id']
-				}
-			}
-		}
-	})
-	return id_
 }
 
 const queryString = window.location.search;
@@ -278,7 +234,6 @@ for (i in weather) {
 
 dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints});
 dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
-var nodesurl = baseurl+'/nodes/heating/'+id_;
 
 var config = {
 	type: 'line',
@@ -322,20 +277,25 @@ window.onload = function() {
 	}
 };
 
+function sendData(headers, hub_name, id_, data) {
+	$.ajax({
+		url: baseurl+'/nodes/'+hub_name+'/'+id_,
+		type: 'POST',
+		headers: headers,
+		data: JSON.stringify(data),
+		async: false,
+		success: function (json) {
+			console.log('success');
+			console.log(json);
+		}
+	});
+}
 
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
 	console.log('set '+temp);
 	var data={'target': temp};
-	$.ajax({
-		url: nodesurl,
-		type: 'POST',
-		headers: headers,
-		data: JSON.stringify(data),
-		success: function () {
-			console.log('success')
-		}
-	});
+	sendData(headers, hub_name, id_, data);
 	location.reload();
 }
 
@@ -354,33 +314,15 @@ function boostTemp() {
 	time = document.getElementById("boostTime").value;
 	console.log('boost '+temp+' '+time);
 	var data={'mode': 'BOOST', 'boost': time, 'target': temp};
-	$.ajax({
-		url: nodesurl,
-		type: 'POST',
-		headers: headers,
-		data: JSON.stringify(data),
-		success: function (json) {
-			console.log('success');
-			console.log(json);
-		}
-	});
-	setTimeout(function() {location.reload();}, 5000);
+	sendData(headers, hub_name, id_, data);
+	location.reload();
 }
 
 function stopBoost() {
 	document.getElementById('boostOrStop').innerHTML = 'Stopping...'
 	var data={'mode': 'SCHEDULE'};
-	$.ajax({
-		url: nodesurl,
-		type: 'POST',
-		headers: headers,
-		data: JSON.stringify(data),
-		success: function (json) {
-			console.log('success');
-			console.log(json);
-		}
-	});
-	setTimeout(function() {location.reload();}, 5000);
+	sendData(headers, hub_name, id_, data);
+	location.reload();
 }
 
 </script>
