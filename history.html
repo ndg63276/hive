@@ -13,11 +13,11 @@
 var hub_name = 'heating';
 user_info = checklogin();
 var headers = user_info['headers'];
-var latitude = user_info['user']['latitude'];
-var longitude = user_info['user']['longitude'];
-if (headers === null) {
+if (headers == null) {
 	window.location.replace('index.html');
 };
+var latitude = user_info['user']['latitude'];
+var longitude = user_info['user']['longitude'];
 
 var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
 var location_id = getCookie('location_id');
@@ -119,43 +119,7 @@ const urlParams = new URLSearchParams(queryString);
 var startdate = new Date();
 if (urlParams.has('start')) {
 	var start = urlParams.get('start');
-	if (start.startsWith('20')) {
-		startyear = start.substring(0, 4);
-		startmonth = start.substring(4, 6);
-		startday = start.substring(6, 8);
-		starthour = 0;
-		startmin = 0;
-		startsec = 0;
-		if (start.length > 8) { starthour = start.substring(8, 10); }
-		if (start.length > 10) { startmin = start.substring(10, 12); }
-		if (start.length > 12) { startsec = start.substring(12, 14); }
-		startdate = new Date(startyear, startmonth-1, startday, starthour, startmin, startsec);
-	}
-	var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
-	var match = start.match(pattern);
-	if (match != null) {
-		if (match[2].includes('year')) {
-			startdate.setFullYear(startdate.getFullYear() - match[1]);
-		}
-		if (match[2].includes('month')) {
-			startdate.setMonth(startdate.getMonth() - match[1]);
-		}
-		if (match[2].includes('week')) {
-			startdate.setDate(startdate.getDate() - match[1] * 7);
-		}
-		if (match[2].includes('day')) {
-			startdate.setDate(startdate.getDate() - match[1]);
-		}
-		if (match[2].includes('hour')) {
-			startdate.setHours(startdate.getHours() - match[1]);
-		}
-		if (match[2].includes('min')) {
-			startdate.setMinutes(startdate.getMinutes() - match[1]);
-		}
-		if (match[2].includes('sec')) {
-			startdate.setSeconds(startdate.getSeconds() - match[1]);
-		}
-	}
+	startdate = parseDateParam(start)
 } else {
 	startdate.setDate(startdate.getDate() - 1);
 }
@@ -163,43 +127,7 @@ if (urlParams.has('start')) {
 var enddate = new Date();
 if (urlParams.has('end')) {
 	var end = urlParams.get('end');
-	if (end.startsWith('20')) {
-		endyear = end.substring(0, 4);
-		endmonth = end.substring(4, 6);
-		endday = end.substring(6, 8);
-		endhour = 0;
-		endmin = 0;
-		endsec = 0;
-		if (end.length > 8) { endhour = end.substring(8, 10); }
-		if (end.length > 10) { endmin = end.substring(10, 12); }
-		if (end.length > 12) { endsec = end.substring(12, 14); }
-		enddate = new Date(endyear, endmonth-1, endday, endhour, endmin, endsec);
-	}
-	var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
-	var match = end.match(pattern);
-	if (match != null) {
-		if (match[2].includes('year')) {
-			enddate.setFullYear(enddate.getFullYear() - match[1]);
-		}
-		if (match[2].includes('month')) {
-			enddate.setMonth(enddate.getMonth() - match[1]);
-		}
-		if (match[2].includes('week')) {
-			enddate.setDate(enddate.getDate() - match[1] * 7);
-		}
-		if (match[2].includes('day')) {
-			enddate.setDate(enddate.getDate() - match[1]);
-		}
-		if (match[2].includes('hour')) {
-			enddate.setHours(enddate.getHours() - match[1]);
-		}
-		if (match[2].includes('min')) {
-			enddate.setMinutes(enddate.getMinutes() - match[1]);
-		}
-		if (match[2].includes('sec')) {
-			enddate.setSeconds(enddate.getSeconds() - match[1]);
-		}
-	}
+	enddate = parseDateParam(end)
 }
 
 if (startdate.getFullYear() === enddate.getFullYear() &&
