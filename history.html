@@ -91,7 +91,6 @@ temps = get_temps(headers, id_, startdate, enddate)
 var pagelink=location.origin+location.pathname;
 var dataSets = [];
 var dataPoints = [];
-var dataPoints2 = [];
 var dataPoints3 = [];
 
 for (i in temps) {
@@ -104,11 +103,7 @@ for (i in weather) {
 	dataPoints3.push({x: parseInt(i), y: weather[i]});
 }
 
-//console.log(dataPoints);
-//console.log(dataPoints3);
-
-
-dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Actual', fill:false, data:dataPoints});
+dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:dataPoints});
 dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
 
 var config = {
@@ -153,30 +148,14 @@ window.onload = function() {
 	}
 };
 
-function sendData(headers, hub_name, id_, data) {
-	$.ajax({
-		url: baseurl+'/nodes/'+hub_name+'/'+id_,
-		type: 'POST',
-		headers: headers,
-		data: JSON.stringify(data),
-		async: false,
-		success: function (json) {
-			console.log('success');
-			console.log(json);
-		}
-	});
-}
-
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
-	console.log('set '+temp);
 	var data={'target': temp};
 	sendData(headers, hub_name, id_, data);
 	location.reload();
 }
 
 function boostOrStop() {
-	console.log('boostOrStop')
 	if (document.getElementById('boostOrStop').innerHTML == 'Stop') {
 		stopBoost();
 	} else {
@@ -188,7 +167,6 @@ function boostTemp() {
 	document.getElementById('boostOrStop').innerHTML = 'Boosting...'
 	temp = document.getElementById("boostTempToSet").value;
 	time = document.getElementById("boostTime").value;
-	console.log('boost '+temp+' '+time);
 	var data={'mode': 'BOOST', 'boost': time, 'target': temp};
 	sendData(headers, hub_name, id_, data);
 	location.reload();
