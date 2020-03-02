@@ -75,6 +75,33 @@ function checklogin() {
 	return to_return;
 }
 
+function get_temps(headers, id_, startdate, enddate) {
+	start = startdate.getTime();
+	end = enddate.getTime();
+	var j = {}
+	while (!('data' in j)) {
+		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'};
+		$.ajax({
+			url: baseurl + '/history/'+hub_name+'/' + id_,
+			headers: headers,
+			type: 'GET',
+			data: params,
+			dataType: 'json',
+			async: false,
+			success: function(json) {
+				console.log('success in get_temps')
+				j = json;
+			},
+			error: function(json) {
+				console.log('error in get_temps')
+			}
+		});
+		start += 1000;
+	}
+	temps = j['data'];
+	return temps;
+}
+
 function getSchedule(headers, hub_name) {
 	to_return = {}
 	devices = getProducts(headers);

@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script src="functions.js"></script>
 <script>
+var pagelink=location.origin+location.pathname;
 var hub_name = 'heating';
 user_info = checklogin();
 var headers = user_info['headers'];
@@ -31,35 +32,6 @@ var currentTemp = device_info['props']['temperature'];
 var currentTarget = device_info['state']['target'];
 var currentMode = device_info['state']['mode'];
 var currentBoost = device_info['state']['boost'];
-
-function get_temps(headers, id_, startdate, enddate) {
-	start = startdate.getTime();
-	end = enddate.getTime();
-	var j = {}
-	while (!('data' in j)) {
-		console.log('getting temps');
-		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'};
-		$.ajax({
-			url: baseurl + '/history/'+hub_name+'/' + id_,
-			headers: headers,
-			type: 'GET',
-			data: params,
-			dataType: 'json',
-			async: false,
-			success: function(json) {
-				console.log('success in get_temps')
-				j = json;
-			},
-			error: function(json) {
-				console.log('error in get_temps')
-			}
-		});
-		start += 1000;
-	}
-	console.log(j);
-	temps = j['data'];
-	return temps;
-}
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -87,24 +59,20 @@ if (startdate.getFullYear() === enddate.getFullYear() &&
 }
 
 temps = get_temps(headers, id_, startdate, enddate)
-
-var pagelink=location.origin+location.pathname;
-var dataSets = [];
-var dataPoints = [];
-var dataPoints3 = [];
-
+var hiveDataPoints = [];
 for (i in temps) {
-	dataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
+	hiveDataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
 }
 
 weather = get_weather(startdate, enddate, location_id);
-
+var weatherDataPoints = [];
 for (i in weather) {
-	dataPoints3.push({x: parseInt(i), y: weather[i]});
+	weatherDataPoints.push({x: parseInt(i), y: weather[i]});
 }
 
-dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:dataPoints});
-dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:dataPoints3});
+var dataSets = [];
+dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:hiveDataPoints});
+dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
 var config = {
 	type: 'line',
