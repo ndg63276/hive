@@ -36,7 +36,7 @@ function do_login(username, password) {
 		success: function(json) {
 			if ('token' in json) {
 				setCookie('token', json['token'], 1)
-				to_return = true;
+				to_return = json['user']['username'];
 			}
 		},
 	})

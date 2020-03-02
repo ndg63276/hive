@@ -4,18 +4,22 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>Hive Login</title>
+<title>My Hive Login</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="functions.js"></script>
 <script>
 
+function logged_in(email) {
+	document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
+	document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
+}
+
 function login() {
-	username = document.getElementById("username").value;
-	password = document.getElementById("password").value;
-	success = do_login(username, password);
-	if (success) {
-		document.getElementById("loginstate").innerHTML = 'You are now logged in.';
-		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
+	var username = document.getElementById("username").value;
+	var password = document.getElementById("password").value;
+	var email = do_login(username, password);
+	if (email) {
+		logged_in(email);
 	} else {
 		document.getElementById("loginstate").innerHTML = 'Login failed';
 	}
@@ -25,9 +29,8 @@ window.onload = function() {
 	user_info = checklogin();
 	var headers = user_info['headers'];
 	if (headers != null) {
-		var email = user_info['user']['email']
-		document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
-		document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule view</a><br /><a href='history.html'>History view</a><br />";
+		var email = user_info['user']['username'];
+		logged_in(email);
 	} else {
 		document.getElementById("loginstate").innerHTML = "You are not logged in.";
 		document.getElementById("mainbody").innerHTML = "<label class='l1' for='username'>Username: </label><input id='username'><br />";
