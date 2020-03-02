@@ -138,6 +138,23 @@ function get_device_info(headers, hub_name) {
 	return to_return;
 }
 
+function getCurrentAndNextEvent(device_info, day, hours, mins) {
+	to_return = {}
+	var dayAsString = dayOfWeekAsString(day);
+	var time = hours * 60 + mins;
+	var schedule = device_info['state']['schedule'];
+	var daySchedule = schedule[dayAsString];
+	for (event in daySchedule) {
+		if (daySchedule[event]['start'] < time) {
+			to_return['currentEvent'] = daySchedule[event];
+		} else {
+			to_return['nextEvent'] = daySchedule[event];
+			break;
+		}
+	}
+	return to_return
+}
+
 function sendData(headers, hub_name, id_, data) {
 	to_return = false;
 	$.ajax({
@@ -217,6 +234,11 @@ function capitalise(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+function dayOfWeekAsString(dayIndex) {
+	if (dayIndex < 0) { dayIndex += 7 };
+	if (dayIndex > 6) { dayIndex -= 7 };
+	return ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][dayIndex];
+}
 
 function parseDateParam(param) {
 	var to_return = new Date();

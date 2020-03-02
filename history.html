@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script src="functions.js"></script>
 <script>
-var pagelink=location.origin+location.pathname;
+var pagelink = location.origin+location.pathname;
 var hub_name = 'heating';
 user_info = checklogin();
 var headers = user_info['headers'];
@@ -32,6 +32,17 @@ var currentTemp = device_info['props']['temperature'];
 var currentTarget = device_info['state']['target'];
 var currentMode = device_info['state']['mode'];
 var currentBoost = device_info['state']['boost'];
+
+var now = new Date();
+currentAndNextEvent = getCurrentAndNextEvent(device_info, now.getDay(), now.getHours(), now.getMinutes())
+if (!currentAndNextEvent['currentEvent']) {
+	currentAndNextEvent2 = getCurrentAndNextEvent(device_info, now.getDay()-1, 24, 0)
+	currentAndNextEvent['currentEvent'] = currentAndNextEvent2['currentEvent']
+}
+if (!currentAndNextEvent['nextEvent']) {
+	currentAndNextEvent2 = getCurrentAndNextEvent(device_info, now.getDay()+1, 0, 0)
+	currentAndNextEvent['nextEvent'] = currentAndNextEvent2['nextEvent']
+}
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -109,10 +120,14 @@ window.onload = function() {
 	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
 	document.getElementById('tempToSet').value = currentTarget;
 	document.getElementById('boostTempToSet').value = currentTarget;
+	document.getElementById('advanceInfo').innerHTML = ' to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
 	if (currentMode == 'BOOST') {
 		document.getElementById('boosting').innerHTML = 'Now Boosting';
 		document.getElementById('boostTime').value = currentBoost;
 		document.getElementById('boostOrStop').innerHTML = 'Stop';
+	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
+		document.getElementById('advanceOrStop').innerHTML = 'Back to Schedule';
+		document.getElementById('advanceInfo').innerHTML = '';
 	}
 };
 
@@ -129,6 +144,22 @@ function boostOrStop() {
 	} else {
 		boostTemp();
 	}
+}
+
+function advanceOrStop() {
+	if (document.getElementById('advanceOrStop').innerHTML == 'Back to Schedule') {
+		stopBoost();
+	} else {
+		advanceTemp();
+	}
+}
+
+function advanceTemp() {
+	document.getElementById('advanceOrStop').innerHTML = 'Advancing...'
+	temp = currentAndNextEvent['nextEvent']['value']['target']
+	var data={'target': temp};
+	sendData(headers, hub_name, id_, data);
+	location.reload();
 }
 
 function boostTemp() {
@@ -152,11 +183,12 @@ function stopBoost() {
 </head>
 <body>
 
-<table border=0 align=center width=90%><tr align=center><th width=20%>Current Temperature</th><th width=20%>Current Setpoint</th><th width=20%>New setpoint</th><th width=20% id='boosting'>Boost</th><th></th></tr>
+<table border=0 align=center width=90%><tr align=center><th width=25%>Current Temperature</th><th width=25%>Current Setpoint</th><th width=25%>New setpoint</th><th width=25% id='boosting'>Boost</th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
 <td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
-<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td><td style='text-align:left;'><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td></tr>
+<tr align=center><td></td><td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td><td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
 </tr></table>
 
 <canvas id="myChart" width="800" height="400"></canvas>
