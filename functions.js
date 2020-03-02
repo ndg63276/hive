@@ -233,3 +233,55 @@ function parseDateParam(param) {
 	}
 	return to_return;
 }
+
+var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
+function get_weather(startdate, enddate, location_id) {
+	to_return = {};
+	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/'+location_id+'?res=hourly&key='+met_office_key;
+	$.ajax({
+		url: weather_url,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			days = json['SiteRep']['DV']['Location']['Period'];
+			for (day in days) {
+				the_date = days[day]['value'].replace('Z','T');
+				hours = days[day]['Rep'];
+				for (hour in hours) {
+					the_time = (hours[hour]['$']/60).toString().padStart(2, '0');
+					the_temp = hours[hour]['T'];
+					dt_time = Date.parse(the_date+the_time+':00:00');
+					if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
+						to_return[dt_time] = the_temp;
+					}
+				}
+			}
+		}
+	});
+	return to_return;
+}
+
+function get_location_id(latitude, longitude) {
+	var weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key='+met_office_key;
+	$.ajax({
+		url: weather_url,
+		type: 'GET',
+		dataType: 'json',
+		async: false,
+		success: function(json) {
+			var min_dist = 99999;
+			var locations_list = json['Locations']['Location'];
+			for (location_number in locations_list) {
+				this_lat = locations_list[location_number]['latitude'];
+				this_long = locations_list[location_number]['longitude'];
+				this_dist = Math.sqrt(Math.pow(latitude-this_lat,2) + Math.pow(longitude-this_long,2));
+				if (this_dist < min_dist) {
+					min_dist = this_dist
+					min_dist_id = locations_list[location_number]['id']
+				}
+			}
+		}
+	});
+	return min_dist_id;
+}
