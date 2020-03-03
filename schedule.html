@@ -14,11 +14,12 @@ if (headers == null) {
 	window.location.replace('index.html');
 };
 var hub_name = '';
+var hub_type = '';
 
 function loadSchedule() {
 	clearForm();
-	schedule = getSchedule(headers, hub_name);
-	loadJsonIntoForm(schedule);
+	schedule = getSchedule(headers, hub_type, hub_name);
+	loadJsonIntoForm(schedule, hub_type);
 }
 
 function clearForm() {
@@ -32,12 +33,12 @@ function clearForm() {
 
 function updateSchedule() {
 	document.getElementById('success').innerHTML = 'Sending...';
-	var device = get_device_info(headers, hub_name);
+	var device = get_device_info(headers, hub_type, hub_name);
 	var id = device['id']
 	if (id) {
 		var schedule = createJsonFromForm()
 		var data = {'schedule': schedule};
-		var success = sendData(headers, hub_name, id, data);
+		var success = sendData(headers, hub_type, id, data);
 	}
 	if (success) {
 		document.getElementById('success').innerHTML = 'Success!';
@@ -50,7 +51,7 @@ function updateSchedule() {
 function download() {
 	var json = JSON.stringify(createJsonFromForm());
 	var date = new Date().toISOString().substr(0, 16);
-	var filename = "hive_"+hub_name+"_schedule_"+date+".txt";
+	var filename = "hive_"+hub_type+"_"+hub_name+"_schedule_"+date+".txt";
 	var element = document.createElement('a');
 	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(json));
 	element.setAttribute('download', filename);
@@ -66,14 +67,15 @@ function openfile(e) {
 	reader.readAsText(file,'UTF-8');
 	reader.onload = readerEvent => {
 		var file_content = JSON.parse(readerEvent.target.result)
-		loadJsonIntoForm(file_content);
+		loadJsonIntoForm(file_content, hub_type);
 	}
 }
 
-function switchHubName(newHubName) {
+function switchHubName(newHubType, newHubName) {
 	clearForm();
+	hub_type = newHubType;
 	hub_name = newHubName;
-	document.getElementById('hubName').innerHTML = 'Current Mode: '+capitalise(hub_name);
+	document.getElementById('hubName').innerHTML = 'Current Mode: <b>'+capitalise(hub_type)+'-'+capitalise(hub_name)+'</b>';
 }
 
 window.onload = function() {
@@ -82,10 +84,12 @@ window.onload = function() {
 	el = document.getElementById('products');
 	el.innerHTML = "";
 	for (product in products) {
-		device_name = products[product]['type'];
-		el.innerHTML += "<button height=10 onclick='switchHubName(\""+device_name+"\");'>"+capitalise(device_name)+"</button> "
+		console.log(products[product]);
+		device_type = products[product]['type'];
+		device_name = products[product]['state']['name'];
+		el.innerHTML += "<button height=10 onclick='switchHubName(\""+device_type+"\",\""+device_name+"\");'>"+capitalise(device_type)+"-"+capitalise(device_name)+"</button> "
 	}
-	switchHubName(products[0]['type']);
+	switchHubName(products[0]['type'], products[0]['state']['name']);
 };
 
 </script>

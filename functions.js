@@ -82,7 +82,7 @@ function get_temps(headers, id_, startdate, enddate) {
 	while (!('data' in j)) {
 		params = {'start':start, 'end':end, 'timeUnit':'MINUTES', 'rate':'5', 'operation':'MAX'};
 		$.ajax({
-			url: baseurl + '/history/'+hub_name+'/' + id_,
+			url: baseurl + '/history/'+hub_type+'/' + id_,
 			headers: headers,
 			type: 'GET',
 			data: params,
@@ -102,15 +102,9 @@ function get_temps(headers, id_, startdate, enddate) {
 	return temps;
 }
 
-function getSchedule(headers, hub_name) {
-	to_return = {}
-	devices = getProducts(headers);
-	for (device in devices) {
-		if (devices[device]['type'] == hub_name) {
-			to_return = devices[device]['state']['schedule'];
-		}
-	}
-	return to_return
+function getSchedule(headers, hub_type, hub_name) {
+	var device = get_device_info(headers, hub_type, hub_name)
+	return device['state']['schedule'];
 }
 
 function getProducts(headers) {
@@ -127,11 +121,11 @@ function getProducts(headers) {
 	return to_return;
 }
 
-function get_device_info(headers, hub_name) {
+function get_device_info(headers, hub_type, hub_name) {
 	to_return = {}
 	var devices = getProducts(headers);
 	for (device in devices) {
-		if (devices[device]['type'] == hub_name) {
+		if (devices[device]['type'] == hub_type && (hub_name == null || devices[device]['state']['name'] == hub_name)) {
 			to_return = devices[device]
 		}
 	}
@@ -155,10 +149,10 @@ function getCurrentAndNextEvent(device_info, day, hours, mins) {
 	return to_return
 }
 
-function sendData(headers, hub_name, id_, data) {
+function sendData(headers, hub_type, id_, data) {
 	to_return = false;
 	$.ajax({
-		url: baseurl+'/nodes/'+hub_name+'/'+id_,
+		url: baseurl+'/nodes/'+hub_type+'/'+id_,
 		type: 'POST',
 		headers: headers,
 		data: JSON.stringify(data),
@@ -186,7 +180,7 @@ function createJsonFromForm() {
 			mins = parseInt(start.split(':')[1]);
 			time = 60*hours + mins
 			val = document.getElementById(day+num).value;
-			if (hub_name == 'heating') {
+			if (hub_type == 'heating') {
 				rawVal = val.replace('°C','')
 				if (rawVal != '') {
 					target = parseFloat(rawVal);
@@ -212,11 +206,11 @@ function createJsonFromForm() {
 	return json;
 }
 
-function loadJsonIntoForm(jsonToLoad) {
+function loadJsonIntoForm(jsonToLoad, hub_type) {
 	clearForm();
 	for (day in jsonToLoad) {
 		for (num in jsonToLoad[day]) {
-			if (hub_name == 'heating') {
+			if (hub_type == 'heating') {
 				target = JSON.stringify(jsonToLoad[day][num]['value']['target'])+'°C';
 			} else {
 				target = jsonToLoad[day][num]['value']['status'];
