@@ -75,7 +75,7 @@ function switchHubName(newHubType, newHubName) {
 	clearForm();
 	hub_type = newHubType;
 	hub_name = newHubName;
-	document.getElementById('hubName').innerHTML = 'Current Mode: <b>'+capitalise(hub_type)+'-'+capitalise(hub_name)+'</b>';
+	document.getElementById('hubName').innerHTML = 'Current Device: <b>'+capitalise(hub_type)+'-'+capitalise(hub_name)+'</b>';
 }
 
 window.onload = function() {
@@ -94,7 +94,7 @@ window.onload = function() {
 
 </script>
 </head><body>
-Step 1. Choose Mode:<br /><div id='products'>Loading devices...</div>
+Step 1. Choose Device:<br /><div id='products'>Loading devices...</div>
 <br /><br /><div id='hubName'></div><br />
 Step 2. Load schedule from Hive or from a file:<br />
 <button height=10 onclick='loadSchedule();'>Get Schedule From Hive</button>
