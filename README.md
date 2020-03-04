@@ -21,7 +21,7 @@ cd hive-web
 python serve.py
 ```
 5. In a web browser, go to [http://localhost:8000](http://localhost:8000) . You should see a login page. Put in your hive email address and password, and press Submit. It should log you in, and will store a login cookie which will keep you logged in for about 24 hours.
-6. Click one of the links to either the "History View" or "Schedule View".
+6. Click one of the links to either the "Heating Control" or "Schedule Control".
 
 ## Windows 7 Instructions
 1. Go to [https://www.python.org/downloads](https://www.python.org/downloads) and download the latest version for Windows. When you install it, on the first page, make sure to tick the box that says "Add Python 3.7 to PATH" (this is important). Then click "Install Now".
@@ -33,7 +33,7 @@ python serve.py
 python "C:\Users\bob\Desktop\hive-web-master\serve.py"
 ```
 6. In a web browser, go to [http://localhost:8000](http://localhost:8000) . You should see a login page. Put in your hive email address and password, and press Submit. It should log you in, and will store a login cookie which will keep you logged in for about 24 hours.
-7. Click one of the links to either the "History View" or "Schedule View".
+7. Click one of the links to either the "Heating Control" or "Schedule Control".
 
 
 ### Common problems with Windows installation
@@ -42,7 +42,7 @@ python "C:\Users\bob\Desktop\hive-web-master\serve.py"
 * The web page will only keep working as long as you keep the DOS box open. If you close it down, the web page will stop working.
 
 ## Advanced
-On the 'History View', you should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/history.html?start=-1hour. You can edit the start parameter, eg http://localhost:8000/history.html?start=-3hours, and even add an end parameter, eg http://localhost:8000/history.html?start=-2hours&end=-1hour.
+On the 'Heating Control' view, you should also see some buttons at the bottom, to see the last 1 hour, 12 hours, 24 hours and 7 days. These redirect to eg http://localhost:8000/heating.html?start=-1hour. You can edit the start parameter, eg http://localhost:8000/heating.html?start=-3hours, and even add an end parameter, eg http://localhost:8000/heating.html?start=-2hours&end=-1hour.
 
-You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://localhost:8000/history.html?start=201801011200&end=20180131.
+You can also use YYYYMMDD or YYYYMMDDHHmm formatting if you want, eg http://localhost:8000/heating.html?start=201801011200&end=20180131.
 
