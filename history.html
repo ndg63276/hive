@@ -32,6 +32,7 @@ var currentTemp = device_info['props']['temperature'];
 var currentTarget = device_info['state']['target'];
 var currentMode = device_info['state']['mode'];
 var currentBoost = device_info['state']['boost'];
+var readyBy = device_info['state']['optimumStart'];
 
 var now = new Date();
 currentAndNextEvent = getCurrentAndNextEvent(device_info, now.getDay(), now.getHours(), now.getMinutes())
@@ -129,11 +130,29 @@ window.onload = function() {
 		document.getElementById('advanceOrStop').innerHTML = 'Back to Schedule';
 		document.getElementById('advanceInfo').innerHTML = '';
 	}
+	if (readyBy) {
+		document.getElementById('readyById').innerHTML = 'On';
+		document.getElementById('enableReadyBy').innerHTML = 'Disable';
+	} else {
+		document.getElementById('readyById').innerHTML = 'Off';
+	}
 };
 
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
-	var data={'target': temp};
+	var data = {'target': temp};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function enableReadyBy() {
+	if (document.getElementById('enableReadyBy').innerHTML == 'Enable') {
+		document.getElementById('enableReadyBy').innerHTML = 'Enabling...'
+		var data = {'optimumStart': true}
+	} else {
+		document.getElementById('enableReadyBy').innerHTML = 'Disabling...'
+		var data = {'optimumStart': false}
+	}
 	sendData(headers, hub_type, id_, data);
 	location.reload();
 }
@@ -183,12 +202,17 @@ function stopBoost() {
 </head>
 <body>
 
-<table border=0 align=center width=90%><tr align=center><th width=25%>Current Temperature</th><th width=25%>Current Setpoint</th><th width=25%>New setpoint</th><th width=25% id='boosting'>Boost</th></tr>
+<table border=0 align=center width=90%><tr align=center>
+<th width=20%>Current Temperature</th><th width=20%>Current Setpoint</th><th width=20%>New setpoint</th>
+<th width=20% id='boosting'>Boost</th><th width=20%>Ready By</th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
 <td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
-<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td></tr>
-<tr align=center><td></td><td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td><td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
+<td id='readyById' style='padding-top: 0px'></td></tr>
+<tr align=center><td></td><td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td>
+<td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
+<td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
 </tr></table>
 
 <canvas id="myChart" width="800" height="400"></canvas>
