@@ -76,6 +76,20 @@ for (i in temps) {
 	hiveDataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
 }
 
+function get_sched(startdate, enddate) {
+	d = startdate;
+	sched = device_info['state']['schedule'];
+	while (d < enddate) {
+		day = dayOfWeekAsString(d.getDay());
+		s = sched[day];
+		for (event in s) {
+			console.log(s[event]);
+		}
+		d.setDate(d.getDate() + 1);
+	}
+}
+//get_sched(startdate, enddate);
+
 weather = get_weather(startdate, enddate, location_id);
 var weatherDataPoints = [];
 for (i in weather) {
@@ -120,7 +134,7 @@ window.onload = function() {
 	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
 	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
 	document.getElementById('tempToSet').value = currentTarget;
-	document.getElementById('boostTempToSet').value = currentTarget;
+	document.getElementById('boostTempToSet').value = currentTarget+1;
 	document.getElementById('advanceInfo').innerHTML = ' to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
 	if (currentMode == 'BOOST') {
 		document.getElementById('boosting').innerHTML = 'Now Boosting';
