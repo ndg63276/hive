@@ -102,6 +102,46 @@ function get_temps(headers, id_, startdate, enddate) {
 	return temps;
 }
 
+function get_schedule_for_plotting(startdate, enddate, device_info) {
+	var to_return = {};
+	var i = 1;
+	var midnight = new Date(startdate.getTime());
+	midnight.setHours(0, 0, 0, 0);
+	const schedule = device_info['state']['schedule'];
+	while (midnight < enddate) {
+		var eventdate = new Date(midnight.getTime());
+		var day = dayOfWeekAsString(eventdate.getDay());
+		day_schedule = schedule[day];
+		for (event in day_schedule) {
+			var starttime = day_schedule[event]['start'];
+			var hours = Math.floor(starttime/60);
+			var mins = starttime%60;
+			eventdate.setHours(hours);
+			eventdate.setMinutes(mins);
+			eventdate.setSeconds(0);
+			if (eventdate > startdate) {
+				if (eventdate < enddate) {
+					to_return[i] = {};
+					to_return[i]['date'] = eventdate.getTime();
+					to_return[i]['temperature'] = day_schedule[event]['value']['target'];
+					i += 1;
+				}
+			} else {
+				// set the target at the start of the graph
+				to_return[0] = {};
+				to_return[0]['date'] = startdate.getTime();
+				to_return[0]['temperature'] = day_schedule[event]['value']['target'];
+			}
+		}
+		midnight.setDate(midnight.getDate() + 1);
+	}
+	// set the target at the end of the graph
+	to_return[i] = {};
+	to_return[i]['date'] = enddate.getTime();
+	to_return[i]['temperature'] = to_return[i-1]['temperature'];
+	return to_return;
+}
+
 function getSchedule(headers, hub_type, hub_name) {
 	var device = get_device_info(headers, hub_type, hub_name)
 	return device['state']['schedule'];
