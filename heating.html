@@ -77,18 +77,38 @@ for (i in temps) {
 }
 
 function get_sched(startdate, enddate) {
+	to_return = {};
+	i=0;
 	d = startdate;
 	sched = device_info['state']['schedule'];
 	while (d < enddate) {
+		this_d = d;
 		day = dayOfWeekAsString(d.getDay());
 		s = sched[day];
 		for (event in s) {
+			starttime = s[event]['start'];
 			console.log(s[event]);
+			hours = Math.floor(starttime/60);
+			mins = starttime%60;
+			this_d.setHours(hours);
+			this_d.setMinutes(mins);
+			this_d.setSeconds(0);
+			to_return[i] = {};
+			to_return[i]['date'] = this_d.getTime();
+			to_return[i]['temperature'] = s[event]['value']['target'];
+			i+=1;
 		}
 		d.setDate(d.getDate() + 1);
 	}
+	return to_return;
 }
-//get_sched(startdate, enddate);
+sched_temps = get_sched(startdate, enddate)
+var schedDataPoints = [];
+for (i in sched_temps) {
+	schedDataPoints.push({x: sched_temps[i]['date'], y: sched_temps[i]['temperature']});
+}
+
+
 
 weather = get_weather(startdate, enddate, location_id);
 var weatherDataPoints = [];
@@ -98,6 +118,7 @@ for (i in weather) {
 
 var dataSets = [];
 dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:hiveDataPoints});
+dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Schedule', fill:false, data:schedDataPoints});
 dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
 var config = {
