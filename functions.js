@@ -123,14 +123,30 @@ function get_schedule_for_plotting(startdate, enddate, device_info) {
 				if (eventdate < enddate) {
 					to_return[i] = {};
 					to_return[i]['date'] = eventdate.getTime();
-					to_return[i]['temperature'] = day_schedule[event]['value']['target'];
+					if (device_info['type'] == 'heating') {
+						to_return[i]['temperature'] = day_schedule[event]['value']['target'];
+					} else {
+						if (day_schedule[event]['value']['status'] == 'ON') {
+							to_return[i]['setting'] = 1;
+						} else {
+							to_return[i]['setting'] = 0;
+						}
+					}
 					i += 1;
 				}
 			} else {
 				// set the target at the start of the graph
 				to_return[0] = {};
 				to_return[0]['date'] = startdate.getTime();
-				to_return[0]['temperature'] = day_schedule[event]['value']['target'];
+				if (device_info['type'] == 'heating') {
+					to_return[0]['temperature'] = day_schedule[event]['value']['target'];
+				} else {
+					if (day_schedule[event]['value']['status'] == 'ON') {
+						to_return[0]['setting'] = 1;
+					} else {
+						to_return[0]['setting'] = 0;
+					}
+				}
 			}
 		}
 		midnight.setDate(midnight.getDate() + 1);
@@ -138,7 +154,11 @@ function get_schedule_for_plotting(startdate, enddate, device_info) {
 	// set the target at the end of the graph
 	to_return[i] = {};
 	to_return[i]['date'] = enddate.getTime();
-	to_return[i]['temperature'] = to_return[i-1]['temperature'];
+	if (device_info['type'] == 'heating') {
+		to_return[i]['temperature'] = to_return[i-1]['temperature'];
+	} else {
+		to_return[i]['setting'] = to_return[i-1]['setting'];
+	}
 	return to_return;
 }
 
@@ -179,10 +199,13 @@ function getCurrentAndNextEvent(device_info, day, hours, mins) {
 	var schedule = device_info['state']['schedule'];
 	var daySchedule = schedule[dayAsString];
 	for (event in daySchedule) {
-		if (daySchedule[event]['start'] < time) {
+		start = daySchedule[event]['start']
+		if (start < time) {
 			to_return['currentEvent'] = daySchedule[event];
+			to_return['currentEvent']['clock'] = ('00'+Math.floor(start/60)).slice(-2)+':'+('00'+start%60).slice(-2);
 		} else {
 			to_return['nextEvent'] = daySchedule[event];
+			to_return['nextEvent']['clock'] = ('00'+Math.floor(start/60)).slice(-2)+':'+('00'+start%60).slice(-2);
 			break;
 		}
 	}
@@ -266,6 +289,10 @@ function loadJsonIntoForm(jsonToLoad, hub_type) {
 
 function capitalise(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+function hardCapitalise(str) {
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 }
 
 function dayOfWeekAsString(dayIndex) {

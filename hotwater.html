@@ -4,14 +4,14 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>My Hive Temperatures</title>
+<title>My Hive Hot Water</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script src="functions.js"></script>
 <script>
 var pagelink = location.origin+location.pathname;
-var hub_type = 'heating';
+var hub_type = 'hotwater';
 user_info = checklogin();
 var headers = user_info['headers'];
 if (headers == null) {
@@ -28,11 +28,9 @@ if (location_id == "") {
 
 device_info = get_device_info(headers, hub_type, null);
 var id_ = device_info['id'];
-var currentTemp = device_info['props']['temperature'];
-var currentTarget = device_info['state']['target'];
+var currentSetting = device_info['state']['status'];
 var currentMode = device_info['state']['mode'];
 var currentBoost = device_info['state']['boost'];
-var readyBy = device_info['state']['optimumStart'];
 
 var now = new Date();
 currentAndNextEvent = getCurrentAndNextEvent(device_info, now.getDay(), now.getHours(), now.getMinutes())
@@ -70,16 +68,10 @@ if (startdate.getFullYear() === enddate.getFullYear() &&
 		var tooltipFormat="DD-MM-YY HH:mm:ss";
 }
 
-temps = get_temps(headers, id_, startdate, enddate)
-var hiveDataPoints = [];
-for (i in temps) {
-	hiveDataPoints.push({x: parseInt(temps[i]['date']), y: temps[i]['temperature']});
-}
-
-schedule_temps = get_schedule_for_plotting(startdate, enddate, device_info)
+schedule_settings = get_schedule_for_plotting(startdate, enddate, device_info)
 var schedDataPoints = [];
-for (i in schedule_temps) {
-	schedDataPoints.push({x: schedule_temps[i]['date'], y: schedule_temps[i]['temperature']});
+for (i in schedule_settings) {
+	schedDataPoints.push({x: schedule_settings[i]['date'], y: schedule_settings[i]['setting']});
 }
 
 weather = get_weather(startdate, enddate, location_id);
@@ -89,8 +81,7 @@ for (i in weather) {
 }
 
 var dataSets = [];
-dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:hiveDataPoints});
-dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, data:schedDataPoints});
+dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, yAxisID:'right', data:schedDataPoints});
 dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
 var config = {
@@ -110,13 +101,29 @@ var config = {
 				display: true,
 				scaleLabel: { display: false }
 			}],
-			yAxes: [{
-				id: 'left-y-axis',
+			yAxes: [
+			{
+				id: 'left',
 				display: true,
 				position: 'left',
 				type: 'linear',
 				scaleLabel: { display: false }
-			}]
+			},
+			{
+				id: 'right',
+				display: true,
+				position: 'right',
+				type: 'linear',
+				scaleLabel: { display: false },
+				ticks: {
+					callback: function(value, index, values) {
+						if (value == 1) { return 'ON' };
+						if (value == 0) { return 'OFF' };
+						return '';
+					}
+				}
+			}
+			]
 		}
 	}
 };
@@ -124,68 +131,26 @@ var config = {
 window.onload = function() {
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
-	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
-	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
-	document.getElementById('tempToSet').value = currentTarget;
-	document.getElementById('boostTempToSet').value = currentTarget+1;
-	document.getElementById('advanceInfo').innerHTML = ' to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
+	document.getElementById('currentSettingId').innerHTML = hardCapitalise(currentMode)+' - '+hardCapitalise(currentSetting);
+	if (currentSetting == 'OFF') {
+		document.getElementById('boostTempToSet').value = 'ON';
+	} else {
+		document.getElementById('boostTempToSet').value = 'OFF';
+	}
 	if (currentMode == 'BOOST') {
 		document.getElementById('boosting').innerHTML = 'Now Boosting';
 		document.getElementById('boostTime').value = currentBoost;
 		document.getElementById('boostOrStop').innerHTML = 'Stop';
-	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
-		document.getElementById('advanceOrStop').innerHTML = 'Back to Schedule';
-		document.getElementById('advanceInfo').innerHTML = '';
-	}
-	if (readyBy) {
-		document.getElementById('readyById').innerHTML = 'On';
-		document.getElementById('enableReadyBy').innerHTML = 'Disable';
-	} else {
-		document.getElementById('readyById').innerHTML = 'Off';
 	}
 };
 
-function setTemp() {
-	temp = document.getElementById("tempToSet").value;
-	var data = {'target': temp};
-	sendData(headers, hub_type, id_, data);
-	location.reload();
-}
-
-function enableReadyBy() {
-	if (document.getElementById('enableReadyBy').innerHTML == 'Enable') {
-		document.getElementById('enableReadyBy').innerHTML = 'Enabling...'
-		var data = {'optimumStart': true}
-	} else {
-		document.getElementById('enableReadyBy').innerHTML = 'Disabling...'
-		var data = {'optimumStart': false}
-	}
-	sendData(headers, hub_type, id_, data);
-	location.reload();
-}
-
 function boostOrStop() {
 	if (document.getElementById('boostOrStop').innerHTML == 'Stop') {
-		stopBoost();
+		document.getElementById('boostOrStop').innerHTML = 'Stopping...'
+		schedule();
 	} else {
 		boostTemp();
 	}
-}
-
-function advanceOrStop() {
-	if (document.getElementById('advanceOrStop').innerHTML == 'Back to Schedule') {
-		stopBoost();
-	} else {
-		advanceTemp();
-	}
-}
-
-function advanceTemp() {
-	document.getElementById('advanceOrStop').innerHTML = 'Advancing...'
-	temp = currentAndNextEvent['nextEvent']['value']['target']
-	var data={'target': temp};
-	sendData(headers, hub_type, id_, data);
-	location.reload();
 }
 
 function boostTemp() {
@@ -197,9 +162,20 @@ function boostTemp() {
 	location.reload();
 }
 
-function stopBoost() {
-	document.getElementById('boostOrStop').innerHTML = 'Stopping...'
+function off() {
+	var data={'mode': 'OFF'};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function schedule() {
 	var data={'mode': 'SCHEDULE'};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function on() {
+	var data={'mode': 'MANUAL'};
 	sendData(headers, hub_type, id_, data);
 	location.reload();
 }
@@ -210,16 +186,16 @@ function stopBoost() {
 <body>
 
 <table border=0 align=center width=90%><tr align=center>
-<th width=20%>Current Temperature</th><th width=20%>Current Setpoint</th><th width=20%>New setpoint</th>
-<th width=20% id='boosting'>Boost</th><th width=20%>Ready By</th></tr>
-<tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
-<td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
-<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
-<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
+<th width=20%></th><th width=20%>Current Setting</th><th width=20%></th>
+<th width=20% id='boosting'>Boost</th><th width=20%></th></tr>
+<tr align=center><td></td>
+<td id='currentSettingId' style='padding-top: 0px'></td>
+<td style='padding-top: 16px'></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input> for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
 <td id='readyById' style='padding-top: 0px'></td></tr>
-<tr align=center><td></td><td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td>
+<tr align=center><td></td><td><button type="button" id="off" onclick='off();'>Off</button> <button type="button" id="schedule" onclick='schedule();'>Schedule</button> <button type="button" id="on" onclick='on();'>On</button></td>
 <td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
-<td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
+<td></td>
 </tr></table>
 
 <canvas id="myChart" width="800" height="400"></canvas>
@@ -233,6 +209,6 @@ function stopBoost() {
 
 </form></center><br />
 <a href='schedule.html'>Schedule Control</a><br />
-<a href='hotwater.html'>Hot Water Control</a><br />
+<a href='heating.html'>Heating Control</a><br />
 </body>
 </html>
