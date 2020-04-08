@@ -205,8 +205,25 @@ function boostTemp() {
 }
 
 function stopBoost() {
-	document.getElementById('boostOrStop').innerHTML = 'Stopping...'
+	document.getElementById('boostOrStop').innerHTML = 'Stopping...';
+	schedule();
+}
+
+function schedule() {
 	var data={'mode': 'SCHEDULE'};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function off() {
+	var data={'mode': 'OFF'};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function on() {
+	temp = document.getElementById("tempToSet").value;
+	var data={'mode': 'MANUAL', 'target': temp};
 	sendData(headers, hub_type, id_, data);
 	location.reload();
 }
@@ -224,7 +241,8 @@ function stopBoost() {
 <td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
 <td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
 <td id='readyById' style='padding-top: 0px'></td></tr>
-<tr align=center><td></td><td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td>
+<tr align=center><td><button type="button" id="off" onclick='off();'>Off</button> <button type="button" id="schedule" onclick='schedule();'>Schedule</button> <button type="button" id="on" onclick='on();'>On</button></td>
+<td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td>
 <td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
 <td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
 </tr></table>
