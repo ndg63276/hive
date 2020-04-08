@@ -1,10 +1,13 @@
 <html>
-<head>
+<head profile="http://www.w3.org/2005/10/profile">
+<link rel="icon"
+      type="image/png"
+      href="../short_logo_trans.png">
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>My Hive Login</title>
+<title>SmartAtHome.co.uk - My Hive Login</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="functions.js"></script>
 <script>
@@ -33,9 +36,10 @@ window.onload = function() {
 		logged_in(email);
 	} else {
 		document.getElementById("loginstate").innerHTML = "You are not logged in.";
-		document.getElementById("mainbody").innerHTML = "<label class='l1' for='username'>Username: </label><input id='username'><br />";
-		document.getElementById("mainbody").innerHTML += "<label class='l1' for='password'>Password: </label><input type='password' id='password'><br /><br />";
+		document.getElementById("mainbody").innerHTML = "<label class='l1' for='username'>Hive Username: </label><input id='username'><br />";
+		document.getElementById("mainbody").innerHTML += "<label class='l1' for='password'>Hive Password: </label><input type='password' id='password'><br /><br />";
 		document.getElementById("mainbody").innerHTML += "<input type='submit' value='Submit' onclick='return login();'>";
+		document.getElementById("mainbody").innerHTML += " <a href='safe.html'>Is this safe?</a>";
 		document.getElementById('password').onkeydown = function(e){if(e.keyCode == 13){login();}};
 	};
 }
@@ -43,13 +47,14 @@ window.onload = function() {
 </script>
 <style>
 .l1 {
-	width: 100px;
+	width: 130px;
 	display: inline-block;
 }
 </style>
 </head>
 <body>
-
+<img src="../long_logo.png"><br /><br />
 <div id="loginstate"></div><br /><br />
 <div id="mainbody"></div>
+<br /><b>Don't have Hive? Click <a href="https://t.mention-me.email/lnk/ANEAAG0YKIQAAcg9QmQAAJystyUAAO87QCkAAAAAAAEZ0gBejcBSJ5_Xpr_NQpSqKrjsR1lNLQABD9s/1/SJeXbXBtzjJb-1zlia8Obw/aHR0cHM6Ly9oaXZlLm1lbnRpb24tbWUuY29tL20vZmUvZXgxcmstbWFyay13aWxsaWFtcz91dG1fY2FtcGFpZ249cmVmZXJyZXItZm9yd2FyZC1lbWFpbCZ1dG1fbWVkaXVtPWVtYWlsJnV0bV9zb3VyY2U9Y3VzdG9tZXJzJnV0bV9jb250ZW50PWN0YQ">here</a> to get £30 off!</b>
 </body></html>
