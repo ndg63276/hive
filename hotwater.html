@@ -167,24 +167,6 @@ function boostTemp() {
 	location.reload();
 }
 
-function off() {
-	var data={'mode': 'OFF'};
-	sendData(headers, hub_type, id_, data);
-	location.reload();
-}
-
-function schedule() {
-	var data={'mode': 'SCHEDULE'};
-	sendData(headers, hub_type, id_, data);
-	location.reload();
-}
-
-function on() {
-	var data={'mode': 'MANUAL'};
-	sendData(headers, hub_type, id_, data);
-	location.reload();
-}
-
 </script>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>

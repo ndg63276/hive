@@ -395,3 +395,27 @@ function get_location_id(latitude, longitude) {
 	});
 	return min_dist_id;
 }
+
+function schedule() {
+	var data={'mode': 'SCHEDULE'};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function off() {
+	var data={'mode': 'OFF'};
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function on() {
+	if (hub_type == 'heating') {
+		temp = document.getElementById("tempToSet").value;
+		var data={'mode': 'MANUAL', 'target': temp};
+	} else {
+		var data={'mode': 'MANUAL'};
+
+	}
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
