@@ -21,6 +21,7 @@ if (headers == null) {
 	window.location.replace('index.html');
 };
 
+/*
 var location_id = getCookie('location_id');
 if (location_id == "") {
 	var latitude = user_info['user']['latitude'];
@@ -28,6 +29,7 @@ if (location_id == "") {
 	var location_id = get_location_id(latitude, longitude);
 	setCookie('location_id', location_id, 365)
 }
+*/
 
 device_info = get_device_info(headers, hub_type, null);
 var id_ = device_info['id'];
@@ -85,16 +87,18 @@ for (i in schedule_temps) {
 	schedDataPoints.push({x: schedule_temps[i]['date'], y: schedule_temps[i]['temperature']});
 }
 
+/*
 weather = get_weather(startdate, enddate, location_id);
 var weatherDataPoints = [];
 for (i in weather) {
 	weatherDataPoints.push({x: parseInt(i), y: weather[i]});
 }
+*/
 
 var dataSets = [];
 dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:hiveDataPoints});
 dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, data:schedDataPoints});
-dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
+//dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
 var config = {
 	type: 'line',
