@@ -303,45 +303,108 @@ function dayOfWeekAsString(dayIndex) {
 
 function parseDateParam(param) {
 	var to_return = new Date();
-	if (param.startsWith('20')) {
-		year = param.substring(0, 4);
-		month = param.substring(4, 6);
-		day = param.substring(6, 8);
-		hour = 0;
-		min = 0;
-		sec = 0;
-		if (param.length > 8) { hour = param.substring(8, 10); }
-		if (param.length > 10) { min = param.substring(10, 12); }
-		if (param.length > 12) { sec = param.substring(12, 14); }
+	if (param == 'now') {
+		// do nothing
+	} else if (param == 'future_prices') {
+		if (to_return.getHours() >= 16) {
+			to_return.setDate(end.getDate()+1);
+			to_return.setUTCHours(23, 0, 0, 0);
+		} else {
+			to_return.setUTCHours(23, 0, 0, 0);
+		}
+	} else if (param.startsWith("20")) {
+		var pattern = /([0-9]{4})-?([0-9]{2})-?([0-9]{2})T?([0-9]{2})?:?([0-9]{2})?:?([0-9]{2})?.*/;
+		var match = param.match(pattern);
+		year = match[1];
+		month = match[2];
+		day = match[3];
+		if (match[4] == null) { hour = 0; } else { hour = match[4]; }
+		if (match[5] == null) { min = 0; } else { min = match[5]; }
+		if (match[6] == null) { sec = 0; } else { sec = match[6]; }
 		to_return = new Date(year, month-1, day, hour, min, sec);
 	} else {
-		var pattern = /-([0-9]+)(year|month|week|day|hour|min|sec).*/i;
+		var pattern = /([+ -])([0-9]+)(year|month|week|day|hour|min|sec).*/i;
 		var match = param.match(pattern);
 		if (match != null) {
-			if (match[2].includes('year')) {
-				to_return.setFullYear(to_return.getFullYear() - match[1]);
+			if (match[1] == "-") {
+				plusminus = -1
+			} else {
+				plusminus = 1
 			}
-			if (match[2].includes('month')) {
-				to_return.setMonth(to_return.getMonth() - match[1]);
+			if (match[3].includes("year")) {
+				to_return.setFullYear(to_return.getFullYear() + plusminus * match[2]);
 			}
-			if (match[2].includes('week')) {
-				to_return.setDate(to_return.getDate() - match[1] * 7);
+			if (match[3].includes("month")) {
+				to_return.setMonth(to_return.getMonth() + plusminus * match[2]);
 			}
-			if (match[2].includes('day')) {
-				to_return.setDate(to_return.getDate() - match[1]);
+			if (match[3].includes("week")) {
+				to_return.setDate(to_return.getDate() + plusminus * match[2] * 7);
 			}
-			if (match[2].includes('hour')) {
-				to_return.setHours(to_return.getHours() - match[1]);
+			if (match[3].includes("day")) {
+				to_return.setDate(to_return.getDate() + plusminus * match[2]);
 			}
-			if (match[2].includes('min')) {
-				to_return.setMinutes(to_return.getMinutes() - match[1]);
+			if (match[3].includes("hour")) {
+				to_return.setHours(to_return.getHours() + plusminus * match[2]);
 			}
-			if (match[2].includes('sec')) {
-				to_return.setSeconds(to_return.getSeconds() - match[1]);
+			if (match[3].includes("min")) {
+				to_return.setMinutes(to_return.getMinutes() + plusminus * match[2]);
+			}
+			if (match[3].includes("sec")) {
+				to_return.setSeconds(to_return.getSeconds() + plusminus * match[2]);
 			}
 		}
 	}
 	return to_return;
+}
+
+function get_config(tooltipFormat, showRightAxis) {
+	return {
+		type: 'line',
+		data: { datasets: dataSets },
+		options: {
+			title: { display: false },
+			tooltips: {
+				mode: 'x',
+				position: 'nearest',
+			},
+			legend: {
+				display: true,
+				position: 'bottom',
+				labels: { fontSize: 18, usePointStyle: true }
+			},
+			scales: {
+				xAxes: [{
+					type: 'time',
+					time: { tooltipFormat: tooltipFormat },
+					display: true,
+					scaleLabel: { display: false }
+				}],
+				yAxes: [
+				{
+					id: 'left',
+					display: true,
+					position: 'left',
+					type: 'linear',
+					scaleLabel: { display: false }
+				},
+				{
+					id: 'right',
+					display: showRightAxis,
+					position: 'right',
+					type: 'linear',
+					scaleLabel: { display: false },
+					ticks: {
+						callback: function(value, index, values) {
+							if (value == 1) { return 'ON' };
+							if (value == 0) { return 'OFF' };
+							return '';
+						}
+					}
+				}
+				]
+			}
+		}
+	};
 }
 
 var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';

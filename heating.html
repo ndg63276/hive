@@ -92,37 +92,11 @@ for (i in weather) {
 }
 
 var dataSets = [];
-dataSets.push({pointStyle:'line', borderColor:'#0000ff', label:'Hive', fill:false, data:hiveDataPoints});
-dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, data:schedDataPoints});
-dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
+dataSets.push({borderColor:'#0000ff', label:'Hive', fill:false, data:hiveDataPoints});
+dataSets.push({pointHitRadius:20, borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, data:schedDataPoints});
+dataSets.push({pointHitRadius:20, borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
-var config = {
-	type: 'line',
-	data: { datasets: dataSets },
-	options: {
-		title: { display: false },
-		legend: {
-			display: true,
-			position: 'bottom',
-			labels: { fontSize: 18, usePointStyle: true }
-		},
-		scales: {
-			xAxes: [{
-				type: 'time',
-				time: { tooltipFormat: tooltipFormat },
-				display: true,
-				scaleLabel: { display: false }
-			}],
-			yAxes: [{
-				id: 'left-y-axis',
-				display: true,
-				position: 'left',
-				type: 'linear',
-				scaleLabel: { display: false }
-			}]
-		}
-	}
-};
+var config = get_config(tooltipFormat, false);
 
 window.onload = function() {
 	var ctx = document.getElementById('myChart').getContext('2d');

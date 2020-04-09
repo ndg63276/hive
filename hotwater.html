@@ -84,52 +84,10 @@ for (i in weather) {
 }
 
 var dataSets = [];
-dataSets.push({pointStyle:'line', borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, yAxisID:'right', data:schedDataPoints});
-dataSets.push({pointStyle:'line', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
+dataSets.push({pointHitRadius:5, borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, yAxisID:'right', data:schedDataPoints});
+dataSets.push({pointHitRadius:20, borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
-var config = {
-	type: 'line',
-	data: { datasets: dataSets },
-	options: {
-		title: { display: false },
-		legend: {
-			display: true,
-			position: 'bottom',
-			labels: { fontSize: 18, usePointStyle: true }
-		},
-		scales: {
-			xAxes: [{
-				type: 'time',
-				time: { tooltipFormat: tooltipFormat },
-				display: true,
-				scaleLabel: { display: false }
-			}],
-			yAxes: [
-			{
-				id: 'left',
-				display: true,
-				position: 'left',
-				type: 'linear',
-				scaleLabel: { display: false }
-			},
-			{
-				id: 'right',
-				display: true,
-				position: 'right',
-				type: 'linear',
-				scaleLabel: { display: false },
-				ticks: {
-					callback: function(value, index, values) {
-						if (value == 1) { return 'ON' };
-						if (value == 0) { return 'OFF' };
-						return '';
-					}
-				}
-			}
-			]
-		}
-	}
-};
+var config = get_config(tooltipFormat, true)
 
 window.onload = function() {
 	var ctx = document.getElementById('myChart').getContext('2d');
