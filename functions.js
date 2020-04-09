@@ -407,27 +407,31 @@ function get_config(tooltipFormat, showRightAxis) {
 	};
 }
 
-var met_office_key = '4b45fddc-f56f-47bb-a16a-743aed52bdaa';
+var meteo_key = 'OYS2TA9T'
 function get_weather(startdate, enddate, location_id) {
 	to_return = {};
-	weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/'+location_id+'?res=hourly&key='+met_office_key;
+	var weather_url = 'https://api.meteostat.net/v1/history/hourly';
+	var data = {
+		station: location_id,
+		start: startdate.toISOString().substring(0,10),
+		end: enddate.toISOString().substring(0,10),
+		key: meteo_key,
+		time_zone: 'Europe/London',
+		time_format: 'Y-m-d H:i:s'
+	}
 	$.ajax({
 		url: weather_url,
 		type: 'GET',
 		dataType: 'json',
+		data: data,
 		async: false,
 		success: function(json) {
-			days = json['SiteRep']['DV']['Location']['Period'];
-			for (day in days) {
-				the_date = days[day]['value'].replace('Z','T');
-				hours = days[day]['Rep'];
-				for (hour in hours) {
-					the_time = (hours[hour]['$']/60).toString().padStart(2, '0');
-					the_temp = hours[hour]['T'];
-					dt_time = Date.parse(the_date+the_time+':00:00');
-					if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
-						to_return[dt_time] = the_temp;
-					}
+			for (d in json["data"]) {
+				the_time = json["data"][d]["time_local"]
+				the_temp = json["data"][d]["temperature"]
+				dt_time = Date.parse(the_time);
+				if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
+					to_return[dt_time] = the_temp;
 				}
 			}
 		}
@@ -436,27 +440,20 @@ function get_weather(startdate, enddate, location_id) {
 }
 
 function get_location_id(latitude, longitude) {
-	var weather_url = 'http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key='+met_office_key;
+	var weather_url = 'https://api.meteostat.net/v1/stations/nearby';
+	var data = { lat: latitude, lon: longitude, limit: 1, key: meteo_key };
+	var id = '';
 	$.ajax({
 		url: weather_url,
 		type: 'GET',
 		dataType: 'json',
+		data: data,
 		async: false,
 		success: function(json) {
-			var min_dist = 99999;
-			var locations_list = json['Locations']['Location'];
-			for (location_number in locations_list) {
-				this_lat = locations_list[location_number]['latitude'];
-				this_long = locations_list[location_number]['longitude'];
-				this_dist = Math.sqrt(Math.pow(latitude-this_lat,2) + Math.pow(longitude-this_long,2));
-				if (this_dist < min_dist) {
-					min_dist = this_dist
-					min_dist_id = locations_list[location_number]['id']
-				}
-			}
+			id = json['data'][0]['id']
 		}
 	});
-	return min_dist_id;
+	return id;
 }
 
 function schedule() {
