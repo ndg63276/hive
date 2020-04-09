@@ -106,17 +106,17 @@ window.onload = function() {
 	var ctx = document.getElementById('myChart').getContext('2d');
 	var myChart = new Chart(ctx, config);
 	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
-	document.getElementById('currentTargetId').innerHTML = currentTarget+'&deg;C';
+	document.getElementById('currentTargetId').innerHTML = hardCapitalise(currentMode) + ' - ' + currentTarget+'&deg;C';
 	document.getElementById('tempToSet').value = currentTarget;
 	document.getElementById('boostTempToSet').value = currentTarget+1;
-	document.getElementById('advanceInfo').innerHTML = ' to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
+	document.getElementById('advanceOrStop').innerHTML = 'Advance to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
 	if (currentMode == 'BOOST') {
 		document.getElementById('boosting').innerHTML = 'Now Boosting';
 		document.getElementById('boostTime').value = currentBoost;
 		document.getElementById('boostOrStop').innerHTML = 'Stop';
+		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
 	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
-		document.getElementById('advanceOrStop').innerHTML = 'Back to Schedule';
-		document.getElementById('advanceInfo').innerHTML = '';
+		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
 	}
 	if (readyBy) {
 		document.getElementById('readyById').innerHTML = 'On';
@@ -154,7 +154,7 @@ function boostOrStop() {
 }
 
 function advanceOrStop() {
-	if (document.getElementById('advanceOrStop').innerHTML == 'Back to Schedule') {
+	if (document.getElementById('advanceOrStop').innerHTML == 'Schedule') {
 		stopBoost();
 	} else {
 		advanceTemp();
@@ -189,15 +189,15 @@ function stopBoost() {
 <body>
 <center><img src="../long_logo.png"></center><br /><br />
 <table border=0 align=center width=90%><tr align=center>
-<th width=20%>Current Temperature</th><th width=20%>Current Setpoint</th><th width=20%>New setpoint</th>
+<th width=20%>Current Temperature</th><th width=20%>Current Setting</th><th width=20%>New setpoint</th>
 <th width=20% id='boosting'>Boost</th><th width=20%>Ready By</th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
 <td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
 <td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
 <td id='readyById' style='padding-top: 0px'></td></tr>
-<tr align=center><td><button type="button" id="off" onclick='off();'>Off</button> <button type="button" id="schedule" onclick='schedule();'>Schedule</button> <button type="button" id="on" onclick='on();'>On</button></td>
-<td><button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button><span id='advanceInfo'></span></td>
+<tr align=center><td></td>
+<td><button type="button" id="off" onclick='off();'>Off</button> <button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button> <button type="button" id="on" onclick='on();'>On</button></td>
 <td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
 <td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
 </tr></table>
