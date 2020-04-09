@@ -85,8 +85,8 @@ for (i in weather) {
 }
 
 var dataSets = [];
-dataSets.push({pointHitRadius:5, borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, yAxisID:'right', data:schedDataPoints});
-dataSets.push({borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
+dataSets.push({pointHitRadius:5, backgroundColor:'#ff0000', borderColor:'#ff0000', label:'Schedule', fill:false, steppedLine:true, yAxisID:'right', data:schedDataPoints});
+dataSets.push({backgroundColor:'#00ff00', borderColor:'#00ff00', label:'Weather', fill:false, data:weatherDataPoints});
 
 var config = get_config(tooltipFormat, true)
 
@@ -128,7 +128,7 @@ function boostTemp() {
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
-<center><img src="../long_logo.png"></center><br /><br />
+<center><a href='../index.html'><img src="../long_logo.png"></a><br /><br />
 <table border=0 align=center width=90%><tr align=center>
 <th width=20%></th><th width=20%>Current Setting</th><th width=20%></th>
 <th width=20% id='boosting'>Boost</th><th width=20%></th></tr>
