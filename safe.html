@@ -1,9 +1,15 @@
 <html>
 <head profile="http://www.w3.org/2005/10/profile">
-<link rel="icon"
-      type="image/png"
-      href="../short_logo_trans.png">
+<link rel="icon" type="image/png" href="../short_logo_trans.png">
 <title>SmartAtHome.co.uk - My Hive Control</title>
+<link rel="stylesheet" type="text/css" href="../styles.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script src="../general_functions.js"></script>
+<script>
+window.onload = function() {
+        testFirstCookie();
+}
+</script>
 </head><body>
 <center><img src="../long_logo.png"></center><br /><br />
 <h2>Who is SmartAtHome.co.uk?</h2>
@@ -18,5 +24,11 @@ I store a small file, called a cookie, on your computer, with your authorisation
 The code for this website is open sourced on <a href='https://github.com/ndg63276/hive-web'>GitHub</a>, so anyone can check what I'm doing any time.
 <h2>I'm not with Hive.</h2>
 I highly recommend Hive, it's excellent. And they're not paying me to say that (although I do get referral fees). You can get &pound;30 off by clicking <a href="https://t.mention-me.email/lnk/ANEAAG0YKIQAAcg9QmQAAJystyUAAO87QCkAAAAAAAEZ0gBejcBSJ5_Xpr_NQpSqKrjsR1lNLQABD9s/1/SJeXbXBtzjJb-1zlia8Obw/aHR0cHM6Ly9oaXZlLm1lbnRpb24tbWUuY29tL20vZmUvZXgxcmstbWFyay13aWxsaWFtcz91dG1fY2FtcGFpZ249cmVmZXJyZXItZm9yd2FyZC1lbWFpbCZ1dG1fbWVkaXVtPWVtYWlsJnV0bV9zb3VyY2U9Y3VzdG9tZXJzJnV0bV9jb250ZW50PWN0YQ">here</a>. Please make sure to say that Mark Williams (mark<code>@</code>smartathome.co.uk) referred you.
+
+<div id="myCookieConsent">
+<a id="cookieButton" onClick="acceptCookies()">Understood</a>
+<div>This website is using cookies. <a href="../cookies.html">More details</a></div>
+</div>
+
 </body>
 </html>
