@@ -1,14 +1,14 @@
 <html>
 <head profile="http://www.w3.org/2005/10/profile">
-<link rel="icon"
-      type="image/png"
-      href="../short_logo_trans.png">
+<link rel="icon" type="image/png" href="../short_logo_trans.png">
+<link rel="stylesheet" type="text/css" href="../styles.css">
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>SmartAtHome.co.uk - My Hive Schedule</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="../general_functions.js"></script>
 <script src="functions.js"></script>
 <script>
 user_info = checklogin();
@@ -82,6 +82,7 @@ function switchHubName(newHubType, newHubName) {
 }
 
 window.onload = function() {
+        testFirstCookie();
 	clearForm();
 	var products = getProducts(headers);
 	el = document.getElementById('products');
@@ -161,4 +162,10 @@ Step 5. Update the Hive schedule:<br />
 <br /><br />
 <a href='heating.html'>Heating Control</a><br />
 <a href='hotwater.html'>Hot Water Control</a><br />
+<br /><br />
+<div id="myCookieConsent">
+<a id="cookieButton" onClick="acceptCookies()">Understood</a>
+<div>This website is using cookies. <a href="../cookies.html">More details</a></div>
+</div>
+
 </html>
