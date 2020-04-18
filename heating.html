@@ -114,6 +114,7 @@ window.onload = function() {
 		document.getElementById('boostTime').value = currentBoost;
 		document.getElementById('boostOrStop').innerHTML = 'Stop';
 		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
+		document.getElementById('boostTempToSet').value = currentTarget;
 	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
 		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
 	}
