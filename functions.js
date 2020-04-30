@@ -265,14 +265,6 @@ function loadJsonIntoForm(jsonToLoad, hub_type) {
 	}
 }
 
-function capitalise(str) {
-	return str.charAt(0).toUpperCase() + str.slice(1)
-}
-
-function hardCapitalise(str) {
-	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
-}
-
 function dayOfWeekAsString(dayIndex) {
 	if (dayIndex < 0) { dayIndex += 7 };
 	if (dayIndex > 6) { dayIndex -= 7 };
