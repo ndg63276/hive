@@ -14,10 +14,16 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
+
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
 <link rel="icon" type="image/png" href="../short_logo_trans.png">
 <link rel="stylesheet" type="text/css" href="../styles.css">
+<link rel="stylesheet" media="(max-width:600px)" href="../smallscreens.css">
+<link rel="stylesheet" media="(min-width:601px)" href="../largescreens.css">
 <title>SmartAtHome.co.uk - My Hive Schedule</title>
-<script src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 <script src="../general_functions.js"></script>
 <script src="functions.js"></script>
 <script>
@@ -44,6 +50,15 @@ function clearForm() {
 	}
 }
 
+function longDays() {
+	if (window.innerWidth > 800) {
+		for (day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+			document.getElementById(day).innerHTML = capitalise(day);
+		}
+	}
+}
+			
+			
 function updateSchedule() {
 	document.getElementById('success').innerHTML = 'Sending...';
 	var device = get_device_info(headers, hub_type, hub_name);
@@ -93,81 +108,84 @@ function switchHubName(newHubType, newHubName) {
 
 window.onload = function() {
         testFirstCookie();
+        longDays();
 	clearForm();
 	var products = getProducts(headers);
 	el = document.getElementById('products');
 	el.innerHTML = "";
 	for (product in products) {
-		console.log(products[product]);
 		device_type = products[product]['type'];
 		device_name = products[product]['state']['name'];
-		el.innerHTML += "<button height=10 onclick='switchHubName(\""+device_type+"\",\""+device_name+"\");'>"+capitalise(device_type)+"-"+capitalise(device_name)+"</button> "
+		el.innerHTML += "<button height=10 data-inline='true' onclick='switchHubName(\""+device_type+"\",\""+device_name+"\");'>"+capitalise(device_type)+"-"+capitalise(device_name)+"</button> "
 	}
 	switchHubName(products[0]['type'], products[0]['state']['name']);
+	// reload products div to give jqm style
+	$('#products').trigger('create');
 };
 
 </script>
 </head><body>
+<div data-role="page">
 <center><a href='../index.html'><img src="../long_logo.png"></a><br /><br />
 Step 1. Choose Device:<br /><div id='products'>Loading devices...</div>
 <br /><br /><div id='hubName'></div><br />
 Step 2. Load schedule from Hive or from a file:<br />
-<button height=10 onclick='loadSchedule();'>Get Schedule From Hive</button>
-<button onclick="document.getElementById('file-input').click();">Load schedule from file</button>
+<button data-inline="true" height=10 onclick='loadSchedule();'>Get Schedule From Hive</button>
+<button data-inline="true" onclick="document.getElementById('file-input').click();">Load schedule from file</button>
 <br /><br /><br/>
 Step 3. Edit the schedule:
 <table border=0>
-<tr><td>Monday</td><td><input style="width: 60px;" id="monday0">@<input style="width: 60px;" id="monday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="monday1">@<input style="width: 60px;" id="monday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="monday2">@<input style="width: 60px;" id="monday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="monday3">@<input style="width: 60px;" id="monday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="monday4">@<input style="width: 60px;" id="monday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="monday5">@<input style="width: 60px;" id="monday5time">&nbsp;</td></tr>
-<tr><td>Tuesday</td><td><input style="width: 60px;" id="tuesday0">@<input style="width: 60px;" id="tuesday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="tuesday1">@<input style="width: 60px;" id="tuesday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="tuesday2">@<input style="width: 60px;" id="tuesday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="tuesday3">@<input style="width: 60px;" id="tuesday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="tuesday4">@<input style="width: 60px;" id="tuesday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="tuesday5">@<input style="width: 60px;" id="tuesday5time">&nbsp;</td></tr>
-<tr><td>Wednesday</td><td><input style="width: 60px;" id="wednesday0">@<input style="width: 60px;" id="wednesday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="wednesday1">@<input style="width: 60px;" id="wednesday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="wednesday2">@<input style="width: 60px;" id="wednesday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="wednesday3">@<input style="width: 60px;" id="wednesday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="wednesday4">@<input style="width: 60px;" id="wednesday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="wednesday5">@<input style="width: 60px;" id="wednesday5time">&nbsp;</td></tr>
-<tr><td>Thursday</td><td><input style="width: 60px;" id="thursday0">@<input style="width: 60px;" id="thursday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="thursday1">@<input style="width: 60px;" id="thursday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="thursday2">@<input style="width: 60px;" id="thursday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="thursday3">@<input style="width: 60px;" id="thursday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="thursday4">@<input style="width: 60px;" id="thursday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="thursday5">@<input style="width: 60px;" id="thursday5time">&nbsp;</td></tr>
-<tr><td>Friday</td><td><input style="width: 60px;" id="friday0">@<input style="width: 60px;" id="friday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="friday1">@<input style="width: 60px;" id="friday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="friday2">@<input style="width: 60px;" id="friday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="friday3">@<input style="width: 60px;" id="friday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="friday4">@<input style="width: 60px;" id="friday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="friday5">@<input style="width: 60px;" id="friday5time">&nbsp;</td></tr>
-<tr><td>Saturday</td><td><input style="width: 60px;" id="saturday0">@<input style="width: 60px;" id="saturday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="saturday1">@<input style="width: 60px;" id="saturday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="saturday2">@<input style="width: 60px;" id="saturday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="saturday3">@<input style="width: 60px;" id="saturday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="saturday4">@<input style="width: 60px;" id="saturday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="saturday5">@<input style="width: 60px;" id="saturday5time">&nbsp;</td></tr>
-<tr><td>Sunday</td><td><input style="width: 60px;" id="sunday0">@<input style="width: 60px;" id="sunday0time">&nbsp;</td>
-<td><input style="width: 60px;" id="sunday1">@<input style="width: 60px;" id="sunday1time">&nbsp;</td>
-<td><input style="width: 60px;" id="sunday2">@<input style="width: 60px;" id="sunday2time">&nbsp;</td>
-<td><input style="width: 60px;" id="sunday3">@<input style="width: 60px;" id="sunday3time">&nbsp;</td>
-<td><input style="width: 60px;" id="sunday4">@<input style="width: 60px;" id="sunday4time">&nbsp;</td>
-<td><input style="width: 60px;" id="sunday5">@<input style="width: 60px;" id="sunday5time">&nbsp;</td></tr>
+<tr><td id="monday">Mon</td><td><input class="small-input" id="monday0">@<input class="small-input" id="monday0time">&nbsp;</td>
+<td><input class="small-input" id="monday1">@<input class="small-input" id="monday1time">&nbsp;</td>
+<td><input class="small-input" id="monday2">@<input class="small-input" id="monday2time">&nbsp;</td>
+<td><input class="small-input" id="monday3">@<input class="small-input" id="monday3time">&nbsp;</td>
+<td><input class="small-input" id="monday4">@<input class="small-input" id="monday4time">&nbsp;</td>
+<td><input class="small-input" id="monday5">@<input class="small-input" id="monday5time">&nbsp;</td></tr>
+<tr><td id="tuesday">Tue</td><td><input class="small-input" id="tuesday0">@<input class="small-input" id="tuesday0time">&nbsp;</td>
+<td><input class="small-input" id="tuesday1">@<input class="small-input" id="tuesday1time">&nbsp;</td>
+<td><input class="small-input" id="tuesday2">@<input class="small-input" id="tuesday2time">&nbsp;</td>
+<td><input class="small-input" id="tuesday3">@<input class="small-input" id="tuesday3time">&nbsp;</td>
+<td><input class="small-input" id="tuesday4">@<input class="small-input" id="tuesday4time">&nbsp;</td>
+<td><input class="small-input" id="tuesday5">@<input class="small-input" id="tuesday5time">&nbsp;</td></tr>
+<tr><td id="wednesday">Wed</td><td><input class="small-input" id="wednesday0">@<input class="small-input" id="wednesday0time">&nbsp;</td>
+<td><input class="small-input" id="wednesday1">@<input class="small-input" id="wednesday1time">&nbsp;</td>
+<td><input class="small-input" id="wednesday2">@<input class="small-input" id="wednesday2time">&nbsp;</td>
+<td><input class="small-input" id="wednesday3">@<input class="small-input" id="wednesday3time">&nbsp;</td>
+<td><input class="small-input" id="wednesday4">@<input class="small-input" id="wednesday4time">&nbsp;</td>
+<td><input class="small-input" id="wednesday5">@<input class="small-input" id="wednesday5time">&nbsp;</td></tr>
+<tr><td id="thursday">Thu</td><td><input class="small-input" id="thursday0">@<input class="small-input" id="thursday0time">&nbsp;</td>
+<td><input class="small-input" id="thursday1">@<input class="small-input" id="thursday1time">&nbsp;</td>
+<td><input class="small-input" id="thursday2">@<input class="small-input" id="thursday2time">&nbsp;</td>
+<td><input class="small-input" id="thursday3">@<input class="small-input" id="thursday3time">&nbsp;</td>
+<td><input class="small-input" id="thursday4">@<input class="small-input" id="thursday4time">&nbsp;</td>
+<td><input class="small-input" id="thursday5">@<input class="small-input" id="thursday5time">&nbsp;</td></tr>
+<tr><td id="friday">Fri</td><td><input class="small-input" id="friday0">@<input class="small-input" id="friday0time">&nbsp;</td>
+<td><input class="small-input" id="friday1">@<input class="small-input" id="friday1time">&nbsp;</td>
+<td><input class="small-input" id="friday2">@<input class="small-input" id="friday2time">&nbsp;</td>
+<td><input class="small-input" id="friday3">@<input class="small-input" id="friday3time">&nbsp;</td>
+<td><input class="small-input" id="friday4">@<input class="small-input" id="friday4time">&nbsp;</td>
+<td><input class="small-input" id="friday5">@<input class="small-input" id="friday5time">&nbsp;</td></tr>
+<tr><td id="saturday">Sat</td><td><input class="small-input" id="saturday0">@<input class="small-input" id="saturday0time">&nbsp;</td>
+<td><input class="small-input" id="saturday1">@<input class="small-input" id="saturday1time">&nbsp;</td>
+<td><input class="small-input" id="saturday2">@<input class="small-input" id="saturday2time">&nbsp;</td>
+<td><input class="small-input" id="saturday3">@<input class="small-input" id="saturday3time">&nbsp;</td>
+<td><input class="small-input" id="saturday4">@<input class="small-input" id="saturday4time">&nbsp;</td>
+<td><input class="small-input" id="saturday5">@<input class="small-input" id="saturday5time">&nbsp;</td></tr>
+<tr><td id="sunday">Sun</td><td><input class="small-input" id="sunday0">@<input class="small-input" id="sunday0time">&nbsp;</td>
+<td><input class="small-input" id="sunday1">@<input class="small-input" id="sunday1time">&nbsp;</td>
+<td><input class="small-input" id="sunday2">@<input class="small-input" id="sunday2time">&nbsp;</td>
+<td><input class="small-input" id="sunday3">@<input class="small-input" id="sunday3time">&nbsp;</td>
+<td><input class="small-input" id="sunday4">@<input class="small-input" id="sunday4time">&nbsp;</td>
+<td><input class="small-input" id="sunday5">@<input class="small-input" id="sunday5time">&nbsp;</td></tr>
 </table><br /><br />
 Step 4. Save to a backup file:<br />
-<input type="button" id="dwn-btn" value="Save schedule to file" onclick='download();'/>
+<input type="button" data-inline="true" id="dwn-btn" value="Save schedule to file" onclick='download();'/>
 
 
 <input id="file-input" type="file" name="name" style="display: none;" onchange='openfile(this.files);'/>
 <br /><br />
 Step 5. Update the Hive schedule:<br />
-<button height=10 onclick='updateSchedule();'>Send Schedule To Hive</button>
+<button data-inline="true" height=10 onclick='updateSchedule();'>Send Schedule To Hive</button>
 <div id='success'></div>
 <br /><br />
 <a href='heating.html'>Heating Control</a><br />
@@ -177,5 +195,5 @@ Step 5. Update the Hive schedule:<br />
 <a id="cookieButton" onClick="acceptCookies()">Understood</a>
 <div>This website is using cookies. <a href="../cookies.html">More details</a></div>
 </div>
-
+</div><!-- /page -->
 </html>
