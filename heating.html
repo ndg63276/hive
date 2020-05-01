@@ -14,10 +14,17 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
+
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
 <link rel="icon" type="image/png" href="../short_logo_trans.png">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" type="text/css" href="../styles.css">
+<link rel="stylesheet" media="(max-width:800px)" href="../smallscreens.css">
+<link rel="stylesheet" media="(min-width:801px)" href="../largescreens.css">
 <title>SmartAtHome.co.uk - My Hive Heating Control</title>
-<script src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
 <script src="../general_functions.js"></script>
@@ -196,29 +203,35 @@ function stopBoost() {
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
+<div data-role="page">
 <center><a href='../index.html'><img src="../long_logo.png"></a><br /><br />
 <table border=0 align=center width=90%><tr align=center>
 <th width=20%>Current Temperature</th><th width=20%>Current Setting</th><th width=20%>New setpoint</th>
 <th width=20% id='boosting'>Boost</th><th width=20%>Ready By</th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
-<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C<input type='submit' hidden /></form></td>
-<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'>mins</input><input type='submit' hidden /></form></td>
+<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><div class="in-line"><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C</div><span class='hidden'><input type='submit' hidden /></span></form></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><div class="in-line"><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'></input>mins</div><span class='hidden'><input type='submit' hidden /></span></form></td>
 <td id='readyById' style='padding-top: 0px'></td></tr>
 <tr align=center><td></td>
-<td><button type="button" id="off" onclick='off();'>Off</button> <button type="button" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button> <button type="button" id="on" onclick='on();'>On</button></td>
-<td></td><td><button type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
+<td>
+<a href="#" data-role="button" data-inline="true" data-icon="delete" id="off" onclick='off();'>Off</button>
+<a href="#" data-role="button" data-inline="true" data-icon="clock" id="advanceOrStop" onclick='advanceOrStop();'>Advance</button>
+<a href="#" data-role="button" data-inline="true" data-icon="check" id="on" onclick='on();'>On</button></td>
+<td></td><td>
+<button data-role="button" data-icon="star" data-inline="true" type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
 <td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
 </tr></table>
 
 <canvas id="myChart" width="800" height="400"></canvas>
 
 <br /><br /><center><form>
-<input type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.reload(true);' value='Refresh' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"?start=-24hours&end=now";' value='Last 24 hours' style='font-size:20px;height:100px;width:200px'>
-<input type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days' style='font-size:20px;height:100px;width:200px'>
+
+<input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour'>
+<input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-12hours&end=now";' value='Last 12 hours'>
+<span class='refresh-btn'><input data-role="button" data-inline="true" type='button' onClick='window.location.reload(true);' value='Refresh'></span>
+<input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-24hours&end=now";' value='Last 24 hours'>
+<input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days'>
 
 </form></center><br />
 <a href='schedule.html'>Schedule Control</a><br />
@@ -229,6 +242,6 @@ function stopBoost() {
 <a id="cookieButton" onClick="acceptCookies()">Understood</a>
 <div>This website is using cookies. <a href="../cookies.html">More details</a></div>
 </div>
-
+</div><!-- /page -->
 </body>
 </html>
