@@ -9,7 +9,7 @@
 
   gtag('config', 'UA-164510568-1');
 </script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
@@ -116,32 +116,6 @@ dataSets.push({pointHitRadius:20, backgroundColor:'#00ff00', borderColor:'#00ff0
 
 var config = get_config(tooltipFormat, false);
 
-window.onload = function() {
-        testFirstCookie();
-	var ctx = document.getElementById('myChart').getContext('2d');
-	var myChart = new Chart(ctx, config);
-	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
-	document.getElementById('currentTargetId').innerHTML = hardCapitalise(currentMode) + ' - ' + currentTarget+'&deg;C';
-	document.getElementById('tempToSet').value = currentTarget;
-	document.getElementById('boostTempToSet').value = currentTarget+1;
-	document.getElementById('advanceOrStop').innerHTML = 'Advance to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
-	if (currentMode == 'BOOST') {
-		document.getElementById('boosting').innerHTML = 'Now Boosting';
-		document.getElementById('boostTime').value = currentBoost;
-		document.getElementById('boostOrStop').innerHTML = 'Stop';
-		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
-		document.getElementById('boostTempToSet').value = currentTarget;
-	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
-		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
-	}
-	if (readyBy) {
-		document.getElementById('readyById').innerHTML = 'On';
-		document.getElementById('enableReadyBy').innerHTML = 'Disable';
-	} else {
-		document.getElementById('readyById').innerHTML = 'Off';
-	}
-};
-
 function setTemp() {
 	temp = document.getElementById("tempToSet").value;
 	var data = {'target': temp};
@@ -199,11 +173,37 @@ function stopBoost() {
 	schedule();
 }
 
+$( document ).ready(function() {
+        testFirstCookie();
+	var ctx = document.getElementById('heating-chart').getContext('2d');
+	var heatingChart = new Chart(ctx, config);
+	document.getElementById('currentTempId').innerHTML = currentTemp+'&deg;C';
+	document.getElementById('currentTargetId').innerHTML = hardCapitalise(currentMode) + ' - ' + currentTarget+'&deg;C';
+	document.getElementById('tempToSet').value = currentTarget;
+	document.getElementById('boostTempToSet').value = currentTarget+1;
+	document.getElementById('advanceOrStop').innerHTML = 'Advance to '+currentAndNextEvent['nextEvent']['value']['target']+'&deg;C';
+	if (currentMode == 'BOOST') {
+		document.getElementById('boosting').innerHTML = 'Now Boosting';
+		document.getElementById('boostTime').value = currentBoost;
+		document.getElementById('boostOrStop').innerHTML = 'Stop';
+		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
+		document.getElementById('boostTempToSet').value = currentTarget;
+	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
+		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
+	}
+	if (readyBy) {
+		document.getElementById('readyById').innerHTML = 'On';
+		document.getElementById('enableReadyBy').innerHTML = 'Disable';
+	} else {
+		document.getElementById('readyById').innerHTML = 'Off';
+	}
+});
+
 </script>
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
-<div data-role="page">
+<div data-role="page" id="heating-page">
 <center><a href='../index.html'><img src="../long_logo.png"></a><br /><br />
 <table border=0 align=center width=90%><tr align=center>
 <th width=20%>Current Temperature</th><th width=20%>Current Setting</th><th width=20%>New setpoint</th>
@@ -223,7 +223,9 @@ function stopBoost() {
 <td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
 </tr></table>
 
-<canvas id="myChart" width="800" height="400"></canvas>
+<div class="chart-container" style="position: relative; width:100vw">
+<canvas id="heating-chart"></canvas>
+</div>
 
 <br /><br /><center><form>
 
@@ -234,8 +236,8 @@ function stopBoost() {
 <input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days'>
 
 </form></center><br />
-<a href='schedule.html'>Schedule Control</a><br />
-<a href='hotwater.html'>Hot Water Control</a><br />
+<a href='schedule.html' data-ajax='false'>Schedule Control</a><br />
+<a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />
 <br /><br />
 
 <div id="myCookieConsent">

@@ -106,7 +106,7 @@ function switchHubName(newHubType, newHubName) {
 	document.getElementById('hubName').innerHTML = 'Current Device: <b>'+capitalise(hub_type)+'-'+capitalise(hub_name)+'</b>';
 }
 
-window.onload = function() {
+$( document ).ready(function() {
         testFirstCookie();
         longDays();
 	clearForm();
@@ -121,7 +121,7 @@ window.onload = function() {
 	switchHubName(products[0]['type'], products[0]['state']['name']);
 	// reload products div to give jqm style
 	$('#products').trigger('create');
-};
+});
 
 </script>
 </head><body>
@@ -188,8 +188,8 @@ Step 5. Update the Hive schedule:<br />
 <button data-inline="true" height=10 onclick='updateSchedule();'>Send Schedule To Hive</button>
 <div id='success'></div>
 <br /><br />
-<a href='heating.html'>Heating Control</a><br />
-<a href='hotwater.html'>Hot Water Control</a><br />
+<a href='heating.html' data-ajax='false'>Heating Control</a><br />
+<a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />
 <br /><br />
 <div id="myCookieConsent">
 <a id="cookieButton" onClick="acceptCookies()">Understood</a>

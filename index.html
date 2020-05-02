@@ -9,6 +9,11 @@
 
   gtag('config', 'UA-164510568-1');
 </script>
+
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -24,7 +29,7 @@
 
 function logged_in(email) {
 	document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
-	document.getElementById("mainbody").innerHTML = "<a href='schedule.html'>Schedule Control</a><br /><a href='heating.html'>Heating Control</a><br /><a href='hotwater.html'>Hot Water Control</a><br />";
+	document.getElementById("mainbody").innerHTML = "<a href='schedule.html' data-ajax='false'>Schedule Control</a><br /><a href='heating.html' data-ajax='false'>Heating Control</a><br /><a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />";
 }
 
 function login() {
@@ -38,7 +43,7 @@ function login() {
 	}
 }
 
-window.onload = function() {
+$( document ).ready(function() {
         testFirstCookie();
 	user_info = checklogin();
 	var headers = user_info['headers'];
@@ -53,7 +58,7 @@ window.onload = function() {
 		document.getElementById("mainbody").innerHTML += " <a href='safe.html'>Is this safe?</a>";
 		document.getElementById('password').onkeydown = function(e){if(e.keyCode == 13){login();}};
 	};
-}
+})
 
 </script>
 <style>

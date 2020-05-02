@@ -20,7 +20,6 @@
 <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 
 <link rel="icon" type="image/png" href="../short_logo_trans.png">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" type="text/css" href="../styles.css">
 <link rel="stylesheet" media="(max-width:800px)" href="../smallscreens.css">
 <link rel="stylesheet" media="(min-width:801px)" href="../largescreens.css">
@@ -107,9 +106,9 @@ dataSets.push({backgroundColor:'#00ff00', borderColor:'#00ff00', label:'Weather'
 
 var config = get_config(tooltipFormat, true)
 
-window.onload = function() {
+$( document ).ready(function() {
         testFirstCookie();
-	var ctx = document.getElementById('myChart').getContext('2d');
+	var ctx = document.getElementById('hotwater-chart').getContext('2d');
 	var myChart = new Chart(ctx, config);
 	document.getElementById('currentSettingId').innerHTML = hardCapitalise(currentMode)+' - '+hardCapitalise(currentSetting);
 	if (currentMode == 'BOOST') {
@@ -117,7 +116,7 @@ window.onload = function() {
 		document.getElementById('boostTime').value = currentBoost;
 		document.getElementById('boostOrStop').innerHTML = 'Stop';
 	}
-};
+});
 
 function doBoostOrStop() {
 	if (document.getElementById('boostOrStop').innerHTML == 'Stop') {
@@ -164,7 +163,9 @@ function boost() {
 <td></td>
 </tr></table>
 
-<canvas id="myChart" width="800" height="400"></canvas>
+<div class="chart-container" style="position: relative; width:100vw">
+<canvas id="hotwater-chart"></canvas>
+</div>
 
 <br /><br /><center><form>
 <input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-1hour&end=now";' value='Last 1 hour'>
@@ -174,8 +175,8 @@ function boost() {
 <input class='btn' data-role="button" data-inline="true" type='button' onClick='window.location.href=pagelink+"?start=-7days&end=now";' value='Last 7 days'>
 
 </form></center><br />
-<a href='schedule.html'>Schedule Control</a><br />
-<a href='heating.html'>Heating Control</a><br />
+<a href='schedule.html' data-ajax='false'>Schedule Control</a><br />
+<a href='heating.html' data-ajax='false'>Heating Control</a><br />
 <br /><br />
 <div id="myCookieConsent">
 <a id="cookieButton" onClick="acceptCookies()">Understood</a>
