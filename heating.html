@@ -210,8 +210,8 @@ $( document ).ready(function() {
 <th width=20% id='boosting'>Boost</th><th width=20%>Ready By</th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
-<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><div class="in-line"><input id='tempToSet' type=text size=3 style='text-align:center;'></input>&deg;C</div><span class='hidden'><input type='submit' hidden /></span></form></td>
-<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><div class="in-line"><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input>&deg;C for <input id='boostTime' type=text size=1 value=5 style='text-align:center;'></input>mins</div><span class='hidden'><input type='submit' hidden /></span></form></td>
+<td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><div class="in-line"><input id='tempToSet' type=text size=3 style='text-align:center;'></input></div>&deg;C<span class='hidden'><input type='submit' hidden /></span></form></td>
+<td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><div class="in-line"><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input></div>&deg;C for <div class="in-line"><input id='boostTime' type=text size=1 value=5 style='text-align:center;'></input></div>mins<span class='hidden'><input type='submit' hidden /></span></form></td>
 <td id='readyById' style='padding-top: 0px'></td></tr>
 <tr align=center><td></td>
 <td>
