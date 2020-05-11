@@ -126,18 +126,6 @@ function setTemp() {
 	location.reload();
 }
 
-function enableReadyBy() {
-	if (document.getElementById('enableReadyBy').innerHTML == 'Enable') {
-		document.getElementById('enableReadyBy').innerHTML = 'Enabling...'
-		var data = {'optimumStart': true}
-	} else {
-		document.getElementById('enableReadyBy').innerHTML = 'Disabling...'
-		var data = {'optimumStart': false}
-	}
-	sendData(headers, hub_type, id_, data);
-	location.reload();
-}
-
 function boostOrStop() {
 	if (document.getElementById('boostOrStop').innerHTML == 'Stop') {
 		stopBoost();
@@ -194,12 +182,6 @@ $( document ).ready(function() {
 	} else if (currentAndNextEvent['currentEvent']['value']['target'] != currentTarget) {
 		document.getElementById('advanceOrStop').innerHTML = 'Schedule';
 	}
-	if (readyBy) {
-		document.getElementById('readyById').innerHTML = 'On';
-		document.getElementById('enableReadyBy').innerHTML = 'Disable';
-	} else {
-		document.getElementById('readyById').innerHTML = 'Off';
-	}
 });
 
 </script>
@@ -209,13 +191,13 @@ $( document ).ready(function() {
 <div data-role="page" id="heating-page">
 <center><a href='../index.html'><img src="../long_logo.png" alt="smartathome.co.uk logo"></a><br /><br />
 <table border=0 align=center width=90%><tr align=center>
-<th width=20%>Current Temperature</th><th width=20%>Current Setting</th><th width=20%>New setpoint</th>
-<th width=20% id='boosting'>Boost</th><th width=20%>Ready By</th></tr>
+<th width=25%>Current Temperature</th><th width=25%>Current Setting</th><th width=25%>New setpoint</th>
+<th width=25% id='boosting'>Boost</th></tr>
 <tr align=center><td id='currentTempId' style='padding-top: 0px'>&deg;C</td>
 <td id='currentTargetId' style='padding-top: 0px'>&deg;C</td>
 <td style='padding-top: 16px'><form onsubmit='setTemp(); return false'><div class="in-line"><input id='tempToSet' type=text size=3 style='text-align:center;'></input></div>&deg;C<span class='hidden'><input type='submit' hidden /></span></form></td>
 <td style='padding-top: 16px'><form onsubmit='boostTemp(); return false'><div class="in-line"><input id='boostTempToSet' type=text size=3 style='text-align:center;'></input></div>&deg;C for <div class="in-line"><input id='boostTime' type=text size=1 value=5 style='text-align:center;'></input></div>mins<span class='hidden'><input type='submit' hidden /></span></form></td>
-<td id='readyById' style='padding-top: 0px'></td></tr>
+</tr>
 <tr align=center><td></td>
 <td>
 <a href="#" data-role="button" data-inline="true" data-icon="delete" id="off" onclick='off();'>Off</button>
@@ -223,7 +205,6 @@ $( document ).ready(function() {
 <a href="#" data-role="button" data-inline="true" data-icon="check" id="on" onclick='on();'>On</button></td>
 <td></td><td>
 <button data-role="button" data-icon="star" data-inline="true" type="button" id="boostOrStop" onclick='boostOrStop();'>Boost</button></td>
-<td><button type="button" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button></td>
 </tr></table>
 
 <div class="chart-container" style="position: relative; width:100vw">
@@ -241,6 +222,7 @@ $( document ).ready(function() {
 </form></center><br />
 <a href='schedule.html' data-ajax='false'>Schedule Control</a><br />
 <a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />
+<a href='settings.html' data-ajax='false'>Heating Settings</a><br />
 <br /><br />
 
 <div id="myCookieConsent">

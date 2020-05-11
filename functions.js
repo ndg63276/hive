@@ -1,5 +1,22 @@
 var baseurl = 'https://beekeeper.hivehome.com/1.0';
 
+function logged_in(email) {
+	document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
+	document.getElementById("mainbody").classList.remove("hidden");
+	document.getElementById("loginform").classList.add("hidden");
+}
+
+function login() {
+	var username = document.getElementById("username").value;
+	var password = document.getElementById("password").value;
+	var email = do_login(username, password);
+	if (email) {
+		logged_in(email);
+	} else {
+		document.getElementById("loginstate").innerHTML = 'Login failed';
+	}
+}
+
 function do_login(username, password) {
 	headers = {"Content-Type": "application/json", "Accept": "application/json"};
 	payload = {"username": username, "password": password};
@@ -391,5 +408,68 @@ function on() {
 
 	}
 	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+function enableReadyBy() {
+	if (document.getElementById('enableReadyBy').innerHTML == 'Enable') {
+		document.getElementById('enableReadyBy').innerHTML = 'Enabling...'
+		var data = {'optimumStart': true}
+	} else {
+		document.getElementById('enableReadyBy').innerHTML = 'Disabling...'
+		var data = {'optimumStart': false}
+	}
+	sendData(headers, hub_type, id_, data);
+	location.reload();
+}
+
+
+function checkHolidayMode(headers) {
+	$.ajax({
+		url: baseurl + '/holiday-mode',
+		headers: headers,
+		type: 'GET',
+		success: function(json) {
+			console.log(json);
+			if (json['enabled'] == true) {
+				document.getElementById('holidayModeId').innerHTML = 'On';
+				document.getElementById('enableHolidayMode').innerHTML = 'Disable';
+				document.getElementById('dateInputId').classList.add('hidden');
+			} else {
+				document.getElementById('holidayModeId').innerHTML = 'Off';
+				document.getElementById('enableHolidayMode').innerHTML = 'Enable';
+			}
+		}
+	});
+}
+
+function enableHolidayMode() {
+	if (document.getElementById('enableHolidayMode').innerHTML == 'Enable') {
+		document.getElementById('enableHolidayMode').innerHTML = 'Enabling...';
+		var holiday_temp = document.getElementById('tempToSet').value;
+		var holiday_start = $('input[name="datetimes"]').data('daterangepicker').startDate.valueOf();
+		var holiday_end =$('input[name="datetimes"]').data('daterangepicker').endDate.valueOf();
+		var data = {'start': holiday_start, 'end': holiday_end, 'temperature': holiday_temp}
+		var type = 'POST';
+	} else {
+		document.getElementById('enableHolidayMode').innerHTML = 'Disabling...';
+		var type = 'DELETE';
+		var data = {};
+	}
+	console.log(data)
+	$.ajax({
+		url: baseurl + '/holiday-mode',
+		headers: headers,
+		type: type,
+		data: JSON.stringify(data),
+		dataType: 'json',
+		success: function(json) {
+			console.log('success');
+			console.log(json);
+		},
+		error: function() {
+			console.log('error');
+		}
+	});
 	location.reload();
 }

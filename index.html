@@ -31,22 +31,6 @@
 <script src="functions.js"></script>
 <script>
 
-function logged_in(email) {
-	document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
-	document.getElementById("mainbody").innerHTML = "<a href='schedule.html' data-ajax='false'>Schedule Control</a><br /><a href='heating.html' data-ajax='false'>Heating Control</a><br /><a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />";
-}
-
-function login() {
-	var username = document.getElementById("username").value;
-	var password = document.getElementById("password").value;
-	var email = do_login(username, password);
-	if (email) {
-		logged_in(email);
-	} else {
-		document.getElementById("loginstate").innerHTML = 'Login failed';
-	}
-}
-
 $( document ).ready(function() {
         testFirstCookie();
 	user_info = checklogin();
@@ -56,10 +40,7 @@ $( document ).ready(function() {
 		logged_in(email);
 	} else {
 		document.getElementById("loginstate").innerHTML = "You are not logged in.";
-		document.getElementById("mainbody").innerHTML = "<label class='l1' for='username'>Hive Username: </label><input id='username'><br />";
-		document.getElementById("mainbody").innerHTML += "<label class='l1' for='password'>Hive Password: </label><input type='password' id='password'><br /><br />";
-		document.getElementById("mainbody").innerHTML += "<input type='submit' value='Submit' onclick='return login();'>";
-		document.getElementById("mainbody").innerHTML += " <a href='safe.html'>Is this safe?</a>";
+		document.getElementById("loginform").classList.remove("hidden");
 		document.getElementById('password').onkeydown = function(e){if(e.keyCode == 13){login();}};
 	};
 })
@@ -69,7 +50,17 @@ $( document ).ready(function() {
 <body>
 <center><a href='../index.html'><img src="../long_logo.png" alt="smartathome.co.uk logo"></a><br /><br />
 <div id="loginstate"></div><br /><br />
-<div id="mainbody"></div>
+<div class="hidden" id="loginform">
+<label class='l1' for='username'>Hive Username: </label><input id='username'><br />
+<label class='l1' for='password'>Hive Password: </label><input type='password' id='password'><br /><br />
+<input type='submit' value='Submit' onclick='return login();'> <a href='safe.html'>Is this safe?</a>
+</div>
+<div class="hidden" id="mainbody">
+<a href='schedule.html' data-ajax='false'>Schedule Control</a><br />
+<a href='heating.html' data-ajax='false'>Heating Control</a><br />
+<a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />
+<a href='settings.html' data-ajax='false'>Heating Settings</a><br />
+</div>
 <br /><b>Don't have Hive? Click <a href="https://t.mention-me.email/lnk/ANEAAG0YKIQAAcg9QmQAAJystyUAAO87QCkAAAAAAAEZ0gBejcBSJ5_Xpr_NQpSqKrjsR1lNLQABD9s/1/SJeXbXBtzjJb-1zlia8Obw/aHR0cHM6Ly9oaXZlLm1lbnRpb24tbWUuY29tL20vZmUvZXgxcmstbWFyay13aWxsaWFtcz91dG1fY2FtcGFpZ249cmVmZXJyZXItZm9yd2FyZC1lbWFpbCZ1dG1fbWVkaXVtPWVtYWlsJnV0bV9zb3VyY2U9Y3VzdG9tZXJzJnV0bV9jb250ZW50PWN0YQ">here</a> to get £30 off!</b>
 
 <div id="myCookieConsent">
