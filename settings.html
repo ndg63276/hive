@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" >
+<head profile="http://www.w3.org/2005/10/profile">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-164510568-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-164510568-1');
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description"
+        content="Control your Hive heating and download your schedule through your web browser.">
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
+<link rel="icon" type="image/png" href="../short_logo_trans.png">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<link rel="stylesheet" type="text/css" href="../styles.css">
+<link rel="stylesheet" media="(max-width:800px)" href="../smallscreens.css">
+<link rel="stylesheet" media="(min-width:801px)" href="../largescreens.css">
+<title>SmartAtHome.co.uk - My Hive Settings</title>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script src="../general_functions.js"></script>
+<script src="functions.js"></script>
+<script>
+var pagelink = location.origin+location.pathname;
+var hub_type = 'heating';
+user_info = checklogin();
+var headers = user_info['headers'];
+if (headers == null) {
+	window.location.replace('index.html');
+};
+
+var device_info = get_device_info(headers, hub_type, null);
+var id_ = device_info['id'];
+var readyBy = device_info['state']['optimumStart'];
+
+$( document ).ready(function() {
+        testFirstCookie();
+        checkHolidayMode(headers)
+        if (readyBy) {
+		document.getElementById('readyById').innerHTML = 'On';
+		document.getElementById('enableReadyBy').innerHTML = 'Disable';
+	} else {
+		document.getElementById('readyById').innerHTML = 'Off';
+	}
+	$('input[name="datetimes"]').daterangepicker({
+		timePicker: true,
+		timePicker24Hour: true,
+		startDate: moment().startOf('hour'),
+		endDate: moment().startOf('hour').add(7, 'day'),
+		locale: {
+			format: 'DD/MM/YYYY HH:mm'
+		}
+	});
+});
+</script>
+<body>
+<div data-role="page" id="settings-page">
+<center><a href='../index.html'><img src="../long_logo.png" alt="smartathome.co.uk logo"></a><br /><br />
+
+<table class="w3-table-all w3-centered"><thead>
+<thead><tr class="w3-light-grey">
+<th width=50%>Ready By</th><th>Holiday Mode</th></tr></thead>
+<td id='readyById'></td>
+<td id='holidayModeId'></td></tr>
+<td><button class="ui-btn ui-btn-inline" id="enableReadyBy" onclick='enableReadyBy();'>Enable</button>
+</td>
+<td><div id="dateInputId"><input class="small-input" type="text" name="datetimes" /><br /><div class="in-line"><input id='tempToSet' value=7 type=text size=3 style='text-align:center;'></input></div>&deg;C</div><button class="ui-btn ui-btn-inline" id="enableHolidayMode" onclick='enableHolidayMode();'>Enable</button>
+</tr>
+</table>
+
+<br />
+<a href='schedule.html' data-ajax='false'>Schedule Control</a><br />
+<a href='heating.html' data-ajax='false'>Heating Control</a><br />
+<a href='hotwater.html' data-ajax='false'>Hot Water Control</a><br />
+<br /><br />
+
+<div id="myCookieConsent">
+<a id="cookieButton" onClick="acceptCookies()">Understood</a>
+<div>This website is using cookies. <a href="../cookies.html">More details</a></div>
+</div>
+</div><!-- /page -->
+</body>
+</html>

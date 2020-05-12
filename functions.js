@@ -448,7 +448,7 @@ function enableHolidayMode() {
 		document.getElementById('enableHolidayMode').innerHTML = 'Enabling...';
 		var holiday_temp = document.getElementById('tempToSet').value;
 		var holiday_start = $('input[name="datetimes"]').data('daterangepicker').startDate.valueOf();
-		var holiday_end =$('input[name="datetimes"]').data('daterangepicker').endDate.valueOf();
+		var holiday_end = $('input[name="datetimes"]').data('daterangepicker').endDate.valueOf();
 		var data = {'start': holiday_start, 'end': holiday_end, 'temperature': holiday_temp}
 		var type = 'POST';
 	} else {
