@@ -48,12 +48,13 @@ $( document ).ready(function() {
 </script>
 </head>
 <body>
+<div data-role="page">
 <center><a href='../index.html'><img src="../long_logo.png" alt="smartathome.co.uk logo"></a><br /><br />
 <div id="loginstate"></div><br /><br />
 <div class="hidden" id="loginform">
-<label class='l1' for='username'>Hive Username: </label><input id='username'><br />
-<label class='l1' for='password'>Hive Password: </label><input type='password' id='password'><br /><br />
-<input type='submit' value='Submit' onclick='return login();'> <a href='safe.html'>Is this safe?</a>
+<label class='l1' for='username'>Hive Username:</label><div class="in-line-div"><input id="username"></div><br />
+<label class='l1' for='password'>Hive Password:</label><div class="in-line-div"><input type="password" id="password"></div><br /><br />
+<div class="in-line-div"><input type="submit" value="Submit" onclick="return login();"></div><br /><a href='safe.html'>Is this safe?</a>
 </div>
 <div class="hidden" id="mainbody">
 <a href='schedule.html' data-ajax='false'>Schedule Control</a><br />
@@ -67,5 +68,5 @@ $( document ).ready(function() {
 <a id="cookieButton" onClick="acceptCookies()">Understood</a>
 <div>This website is using cookies. <a href="../cookies.html">More details</a></div>
 </div>
-
+</div><!-- /page -->
 </body></html>
