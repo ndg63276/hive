@@ -22,7 +22,7 @@ function do_login(username, password) {
 	payload = {"username": username, "password": password};
 	to_return = false;
 	$.ajax({
-		url: baseurl + '/global/login',
+		url: baseurl + '/cognito/login',
 		type: 'POST',
 		headers: headers,
 		data: JSON.stringify(payload),
