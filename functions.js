@@ -246,6 +246,15 @@ function createJsonFromForm() {
 					target = ''
 				}
 				targetDict = {"target": target};
+			} else if (hub_type.includes('light')) {
+				if (val.includes('ON')) {
+					rawVal = val.replace('ON','').replace('%','').replace('@','');
+					target = parseFloat(rawVal);
+					targetDict = {'status': 'ON', 'brightness': target};
+				} else {
+					target = val;
+					targetDict = {'status': target};
+				}
 			} else {
 				if (val == 'ON' || val == 'OFF') {
 					target = val
@@ -270,6 +279,11 @@ function loadJsonIntoForm(jsonToLoad, hub_type) {
 		for (num in jsonToLoad[day]) {
 			if (hub_type == 'heating') {
 				target = JSON.stringify(jsonToLoad[day][num]['value']['target'])+'°C';
+			} else if (hub_type.includes('light')) {
+				target = jsonToLoad[day][num]['value']['status'];
+				if (target == 'ON') {
+					target += ' @ '+jsonToLoad[day][num]['value']['brightness']+'%';
+				}
 			} else {
 				target = jsonToLoad[day][num]['value']['status'];
 			}
@@ -472,4 +486,92 @@ function enableHolidayMode() {
 		}
 	});
 	location.reload();
+}
+
+function redraw_devices(lights) {
+	var switches = document.getElementById("switches");
+	switches.innerHTML = "";
+	var tbl = document.createElement("table");
+	var tbdy = document.createElement("tbody");
+	for (light in lights) {
+		light_on = lights[light]["state"]["status"] == "ON";
+		reachable = lights[light]["props"]["online"];
+		var tr = document.createElement("tr");
+		var td = document.createElement("td");
+		var light_name = lights[light]["state"]["name"];
+		var text = document.createTextNode(light_name);
+		td.appendChild(text);
+		tr.appendChild(td);
+		var td1 = document.createElement("td");
+		var but = document.createElement("button");
+		but.innerHTML = "Off";
+		but.onclick = function () { switch_off(this) };
+		but.id = "off_"+lights[light]["type"]+"_"+lights[light]["id"];
+		if ( (!reachable) || (!light_on) ) { but.classList.add("ui-disabled") };
+		td1.appendChild(but);
+		tr.appendChild(td1);
+		var td2 = document.createElement("td");
+		var but2 = document.createElement("button");
+		but2.innerHTML = "On";
+		but2.onclick = function () { switch_on(this) };
+		but2.id = "on_"+lights[light]["type"]+"_"+lights[light]["id"];
+		if ( (!reachable) || light_on ) { but2.classList.add("ui-disabled") };
+		td2.appendChild(but2);
+		tr.appendChild(td2);
+		if ( "brightness" in lights[light]["state"] ) {
+			var td3 = document.createElement("td");
+			var inp = document.createElement("input");
+			inp.type = "range";
+			inp.min = 1;
+			inp.max = 100;
+			inp.value = lights[light]["state"]["brightness"];
+			inp.onchange = function () { slider(this) };
+			inp.id = "slider_"+lights[light]["type"]+"_"+lights[light]["id"];
+			if ( !reachable ) { inp.classList.add("ui-disabled") };
+			td3.appendChild(inp);
+			tr.appendChild(td3);
+		}
+		tbdy.appendChild(tr);
+	}
+	tbl.appendChild(tbdy);
+	switches.appendChild(tbl);
+}
+
+function switch_off(element) {
+	var hub_type = element["id"].split("_")[1];
+	var id_ = element["id"].split("_")[2];
+	var data={"status": "OFF"};
+	sendData(headers, hub_type, id_, data);
+	lights = get_lights(headers);
+	redraw_devices(lights);
+}
+
+function switch_on(element) {
+	var hub_type = element["id"].split("_")[1];
+	var id_ = element["id"].split("_")[2];
+	var data={"status": "ON"};
+	sendData(headers, hub_type, id_, data);
+	lights = get_lights(headers);
+	redraw_devices(lights);
+}
+
+function slider(element) {
+	var hub_type = element["id"].split("_")[1];
+	var id_ = element["id"].split("_")[2];
+	var val = element.value;
+	var data={"status": "ON", "brightness": val};
+	sendData(headers, hub_type, id_, data);
+	lights = get_lights(headers);
+	redraw_devices(lights);
+}
+
+function get_lights(headers) {
+	var products = getProducts(headers);
+	var lights = [];
+	for (product in products) {
+		if (products[product]['type'].includes('light')) {
+			lights.push(products[product]);
+		}
+	}
+	return lights;
 }
