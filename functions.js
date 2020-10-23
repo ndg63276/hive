@@ -531,10 +531,23 @@ function redraw_devices(lights) {
 			td3.appendChild(inp);
 			tr.appendChild(td3);
 		}
+		if ( "hue" in lights[light]["state"] ) {
+			var td4 = document.createElement("td");
+			var inp2 = document.createElement("input");
+			h = lights[light]["state"]["hue"];
+			s = lights[light]["state"]["saturation"];
+			v = lights[light]["state"]["value"];
+			inp2.value = "hsv("+h+", "+s+", "+v+")";
+			inp2.id = "color_"+lights[light]["type"]+"_"+lights[light]["id"];
+			if ( (!reachable) || (!light_on) ) { inp2.classList.add("color_disabled") };
+			td4.appendChild(inp2);
+			tr.appendChild(td4);
+		}
 		tbdy.appendChild(tr);
 	}
 	tbl.appendChild(tbdy);
 	switches.appendChild(tbl);
+	setUpColors();
 }
 
 function switch_off(element) {
@@ -574,4 +587,35 @@ function get_lights(headers) {
 		}
 	}
 	return lights;
+}
+
+function changeColor(element) {
+	var hub_type = element["id"].split("_")[1];
+	var id_ = element["id"].split("_")[2];
+	var val = element.value;
+	var t = $("#"+element.id).spectrum("get");
+	hsv = t.toHsv();
+	h = parseInt(hsv["h"]);
+	s = parseInt(100*hsv["s"]);
+	v = parseInt(100*hsv["v"]);
+	var data = {"hue": h, "saturation": s, "value": v};
+	console.log(data);
+	sendData(headers, hub_type, id_, data);
+	lights = get_lights(headers);
+	redraw_devices(lights);
+}
+
+
+function setUpColors() {
+	$("[id^=color_]").spectrum({
+		type: "color",
+		hideAfterPaletteSelect: true,
+		showInitial: true,
+		showAlpha: false,
+		allowEmpty: false,
+		change: function() {
+			changeColor(this)
+		}
+	});
+	$(".color_disabled").spectrum("disable");
 }
