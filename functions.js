@@ -520,6 +520,11 @@ function redraw_devices(lights) {
 		tr.appendChild(td2);
 		if ( "brightness" in lights[light]["state"] ) {
 			var td3 = document.createElement("td");
+			var sm1 = document.createElement("small");
+			var c1 = document.createElement("center");
+			var t1 = document.createTextNode("Brightness");
+			c1.appendChild(t1);
+			sm1.appendChild(c1);
 			var inp = document.createElement("input");
 			inp.type = "range";
 			inp.min = 1;
@@ -528,6 +533,7 @@ function redraw_devices(lights) {
 			inp.onchange = function () { slider(this) };
 			inp.id = "slider_"+lights[light]["type"]+"_"+lights[light]["id"];
 			if ( !reachable ) { inp.classList.add("ui-disabled") };
+			td3.appendChild(sm1);
 			td3.appendChild(inp);
 			tr.appendChild(td3);
 		}
@@ -542,6 +548,25 @@ function redraw_devices(lights) {
 			if ( (!reachable) || (!light_on) ) { inp2.classList.add("color_disabled") };
 			td4.appendChild(inp2);
 			tr.appendChild(td4);
+		}
+		if ( "colourTemperature" in lights[light]["props"] ) {
+			var td5 = document.createElement("td");
+			var sm2 = document.createElement("small");
+			var c2 = document.createElement("center");
+			var t2 = document.createTextNode("Colour Temp");
+			c2.appendChild(t2);
+			sm2.appendChild(c2);
+			var inp3 = document.createElement("input");
+			inp3.type = "range";
+			inp3.min = lights[light]["props"]["colourTemperature"]["min"];
+			inp3.max = lights[light]["props"]["colourTemperature"]["max"];
+			inp3.value = lights[light]["state"]["colourTemperature"];
+			inp3.onchange = function () { colourTemp(this) };
+			inp3.id = "colourTemp_"+lights[light]["type"]+"_"+lights[light]["id"];
+			if ( (!reachable) || (!light_on) ) { inp3.classList.add("ui-disabled") };
+			td5.appendChild(sm2);
+			td5.appendChild(inp3);
+			tr.appendChild(td5);
 		}
 		tbdy.appendChild(tr);
 	}
@@ -573,6 +598,16 @@ function slider(element) {
 	var id_ = element["id"].split("_")[2];
 	var val = element.value;
 	var data={"status": "ON", "brightness": val};
+	sendData(headers, hub_type, id_, data);
+	lights = get_lights(headers);
+	redraw_devices(lights);
+}
+
+function colourTemp(element) {
+	var hub_type = element["id"].split("_")[1];
+	var id_ = element["id"].split("_")[2];
+	var val = element.value;
+	var data={"colourTemperature": val};
 	sendData(headers, hub_type, id_, data);
 	lights = get_lights(headers);
 	redraw_devices(lights);
