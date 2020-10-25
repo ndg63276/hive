@@ -37,7 +37,7 @@ var hub_type = 'hotwater';
 user_info = checklogin();
 var headers = user_info['headers'];
 if (headers == null) {
-	window.location.replace('index.html');
+	window.location.replace('index.html?dest=hotwater.html');
 };
 
 var meteo_location_id = getCookie('meteo_location_id');

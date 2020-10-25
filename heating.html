@@ -38,7 +38,7 @@ var hub_type = 'heating';
 user_info = checklogin();
 var headers = user_info['headers'];
 if (headers == null) {
-	window.location.replace('index.html');
+	window.location.replace('index.html?dest=heating.html');
 };
 
 var meteo_location_id = getCookie('meteo_location_id');

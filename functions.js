@@ -4,6 +4,10 @@ function logged_in(email) {
 	document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
 	document.getElementById("mainbody").classList.remove("hidden");
 	document.getElementById("loginform").classList.add("hidden");
+	const params = new URLSearchParams(window.location.search);
+	if (params.has("dest")) {
+		window.location.href = params.get("dest");
+	}
 }
 
 function login() {

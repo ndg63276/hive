@@ -39,7 +39,7 @@ var pagelink = location.origin+location.pathname;
 user_info = checklogin();
 var headers = user_info['headers'];
 if (headers == null) {
-	window.location.replace('index.html');
+	window.location.replace('index.html?dest=lights.html');
 };
 
 $( document ).ready(function() {

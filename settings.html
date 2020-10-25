@@ -39,7 +39,7 @@ var hub_type = 'heating';
 user_info = checklogin();
 var headers = user_info['headers'];
 if (headers == null) {
-	window.location.replace('index.html');
+	window.location.replace('index.html?dest=settings.html');
 };
 
 var device_info = get_device_info(headers, hub_type, null);
