@@ -544,6 +544,9 @@ function redraw_devices(lights) {
 			s = lights[light]["state"]["saturation"];
 			v = lights[light]["state"]["value"];
 			inp2.value = "hsv("+h+", "+s+", "+v+")";
+			if (lights[light]["state"]["colourMode"] == "WHITE") {
+				inp2.value = "white";
+			}
 			inp2.id = "color_"+lights[light]["type"]+"_"+lights[light]["id"];
 			if ( (!reachable) || (!light_on) ) { inp2.classList.add("color_disabled") };
 			td4.appendChild(inp2);
@@ -561,6 +564,11 @@ function redraw_devices(lights) {
 			inp3.min = lights[light]["props"]["colourTemperature"]["min"];
 			inp3.max = lights[light]["props"]["colourTemperature"]["max"];
 			inp3.value = lights[light]["state"]["colourTemperature"];
+			if (lights[light]["state"]["colourMode"] == "COLOUR") {
+				inp3.style.opacity = 0.5;
+			} else {
+				inp3.style.opacity = 1;
+			}
 			inp3.onchange = function () { colourTemp(this) };
 			inp3.id = "colourTemp_"+lights[light]["type"]+"_"+lights[light]["id"];
 			if ( (!reachable) || (!light_on) ) { inp3.classList.add("ui-disabled") };
