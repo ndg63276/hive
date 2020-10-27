@@ -568,14 +568,15 @@ function redraw_devices(lights) {
 			inp3.min = lights[light]["props"]["colourTemperature"]["min"];
 			inp3.max = lights[light]["props"]["colourTemperature"]["max"];
 			inp3.value = lights[light]["state"]["colourTemperature"];
-			if (lights[light]["state"]["colourMode"] == "COLOUR") {
+			if ( (!reachable) || (!light_on) ) {
+				inp3.classList.add("ui-disabled")
+			} else if (lights[light]["state"]["colourMode"] == "COLOUR") {
 				inp3.style.opacity = 0.5;
 			} else {
 				inp3.style.opacity = 1;
 			}
 			inp3.onchange = function () { colourTemp(this) };
 			inp3.id = "colourTemp_"+lights[light]["type"]+"_"+lights[light]["id"];
-			if ( (!reachable) || (!light_on) ) { inp3.classList.add("ui-disabled") };
 			td5.appendChild(sm2);
 			td5.appendChild(inp3);
 			tr.appendChild(td5);
