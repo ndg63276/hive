@@ -3,6 +3,7 @@ var baseurl = 'https://beekeeper.hivehome.com/1.0';
 function logged_in(email) {
 	document.getElementById("loginstate").innerHTML = "You are logged in as "+email+".";
 	document.getElementById("mainbody").classList.remove("hidden");
+	document.getElementById("referral").classList.add("hidden");
 	document.getElementById("loginform").classList.add("hidden");
 	const params = new URLSearchParams(window.location.search);
 	if (params.has("dest")) {
@@ -356,28 +357,29 @@ function get_config(tooltipFormat, showRightAxis) {
 	};
 }
 
-var meteo_key = 'OYS2TA9T'
+var meteo_key = 'U1XjssVaOOMIRgB07tY8NIEH8BGahSzD'
 function get_weather(startdate, enddate, location_id) {
 	to_return = {};
-	var weather_url = 'https://api.meteostat.net/v1/history/hourly';
+	var weather_url = "https://api.meteostat.net/v2/stations/hourly";
+	var headers = { "x-api-key": meteo_key };
 	var data = {
-		station: location_id,
-		start: startdate.toISOString().substring(0,10),
-		end: enddate.toISOString().substring(0,10),
-		key: meteo_key,
-		time_zone: 'Europe/London',
-		time_format: 'Y-m-d H:i:s'
+		"station": location_id,
+		"start": startdate.toISOString().substring(0,10),
+		"end": enddate.toISOString().substring(0,10),
+		"tz": "Europe/London",
+		"model": 1,
 	}
 	$.ajax({
 		url: weather_url,
-		type: 'GET',
-		dataType: 'json',
+		type: "GET",
+		headers: headers,
+		dataType: "json",
 		data: data,
 		async: false,
 		success: function(json) {
 			for (d in json["data"]) {
 				the_time = json["data"][d]["time_local"]
-				the_temp = json["data"][d]["temperature"]
+				the_temp = json["data"][d]["temp"]
 				dt_time = Date.parse(the_time);
 				if (dt_time > startdate.getTime() && dt_time < enddate.getTime()) {
 					to_return[dt_time] = the_temp;
@@ -389,17 +391,19 @@ function get_weather(startdate, enddate, location_id) {
 }
 
 function get_location_id(latitude, longitude) {
-	var weather_url = 'https://api.meteostat.net/v1/stations/nearby';
-	var data = { lat: latitude, lon: longitude, limit: 1, key: meteo_key };
-	var id = '';
+	var weather_url = "https://api.meteostat.net/v2/stations/nearby";
+	var data = { "lat": latitude, "lon": longitude, "limit": 1 };
+	var headers = { "x-api-key": meteo_key };
+	var id = "";
 	$.ajax({
 		url: weather_url,
-		type: 'GET',
-		dataType: 'json',
+		type: "GET",
+		headers: headers,
+		dataType: "json",
 		data: data,
 		async: false,
 		success: function(json) {
-			id = json['data'][0]['id']
+			id = json["data"][0]["id"]
 		}
 	});
 	return id;
@@ -508,6 +512,7 @@ function redraw_devices(lights) {
 		tr.appendChild(td);
 		var td1 = document.createElement("td");
 		var but = document.createElement("button");
+		but.classList.add("ui-btn", "ui-icon-power", "ui-btn-icon-left", "ui-shadow", "ui-corner-all");
 		but.innerHTML = "Off";
 		but.onclick = function () { switch_off(this) };
 		but.id = "off_"+lights[light]["type"]+"_"+lights[light]["id"];
@@ -516,6 +521,7 @@ function redraw_devices(lights) {
 		tr.appendChild(td1);
 		var td2 = document.createElement("td");
 		var but2 = document.createElement("button");
+		but2.classList.add("ui-btn", "ui-icon-power", "ui-btn-icon-left", "ui-shadow", "ui-corner-all");
 		but2.innerHTML = "On";
 		but2.onclick = function () { switch_on(this) };
 		but2.id = "on_"+lights[light]["type"]+"_"+lights[light]["id"];
@@ -667,3 +673,11 @@ function setUpColors() {
 	});
 	$(".color_disabled").spectrum("disable");
 }
+
+
+function logout() {
+	setCookie("token", "", -1);
+	setCookie("meteo_location_id", "", -1);
+	location.replace("index.html");
+}
+
