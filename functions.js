@@ -14,33 +14,12 @@ function logged_in(email) {
 function login() {
 	var username = document.getElementById("username").value;
 	var password = document.getElementById("password").value;
-	var email = do_login(username, password);
-	if (email) {
-		logged_in(email);
-	} else {
+	aws_login(username, password).then(function(result) {
+		setCookie('token', result['IdToken'], 1);
+		logged_in(username);
+	}).catch(function() {
 		document.getElementById("loginstate").innerHTML = 'Login failed';
-	}
-}
-
-function do_login(username, password) {
-	headers = {"Content-Type": "application/json", "Accept": "application/json"};
-	payload = {"username": username, "password": password};
-	to_return = false;
-	$.ajax({
-		url: baseurl + '/cognito/login',
-		type: 'POST',
-		headers: headers,
-		data: JSON.stringify(payload),
-		dataType: 'json',
-		async: false,
-		success: function(json) {
-			if ('token' in json) {
-				setCookie('token', json['token'], 1)
-				to_return = json['user']['username'];
-			}
-		},
-	})
-	return to_return;
+	});
 }
 
 function checklogin() {
