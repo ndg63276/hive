@@ -5,9 +5,11 @@ function logged_in(email) {
 	document.getElementById("mainbody").classList.remove("hidden");
 	document.getElementById("referral").classList.add("hidden");
 	document.getElementById("loginform").classList.add("hidden");
-	const params = new URLSearchParams(window.location.search);
-	if (params.has("dest")) {
-		window.location.href = params.get("dest");
+	var urlParams = new URLSearchParams(window.location.search);
+	if (urlParams.has("dest")) {
+		var new_address = urlParams.get("dest");
+		urlParams.delete("dest");
+		window.location.href = new_address + "?" + urlParams.toString();
 	}
 }
 

@@ -33,12 +33,16 @@
 <script src="../general_functions.js"></script>
 <script src="functions.js"></script>
 <script>
+const queryString = window.location.search;
+var urlParams = new URLSearchParams(queryString);
+
 var pagelink = location.origin+location.pathname;
 var hub_type = 'heating';
 user_info = checklogin();
 var headers = user_info['headers'];
 if (headers == null) {
-	window.location.replace('index.html?dest=heating.html');
+	urlParams.set('dest', 'heating.html');
+	window.location.replace('index.html?'+urlParams.toString());
 };
 
 var meteo_location_id = getCookie('meteo_location_id');
@@ -67,9 +71,6 @@ if (!currentAndNextEvent['nextEvent']) {
 	currentAndNextEvent2 = getCurrentAndNextEvent(device_info, now.getDay()+1, 0, 0)
 	currentAndNextEvent['nextEvent'] = currentAndNextEvent2['nextEvent']
 }
-
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
 
 var startdate = new Date();
 if (urlParams.has('start')) {
