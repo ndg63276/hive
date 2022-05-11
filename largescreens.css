@@ -1,0 +1,60 @@
+.big-btn {
+	font-size:20px;
+	height:100px;
+	width:200px
+}
+
+.table_0 {
+	width:0%
+}
+.table_20 {
+	min-width:20%
+}
+.oct_table_reqd {
+	width:20%;
+	vertical-align:middle !important;
+}
+.oct_table_opt {
+	width:20%;
+	vertical-align:middle !important;
+}
+.table_50 {
+	width:40%
+}
+.table_90 {
+	width:90%
+}
+.small-input {
+	font-size: 20px;
+}
+
+.column {
+	flex: 15%;
+	padding: 2%;
+	max-width: 15%;
+}
+
+.column2 {
+	flex: 35%;
+	padding: 2%;
+	max-width: 35%;
+}
+
+.column3 {
+	display: none;
+	visibility: hidden;
+}
+
+.column4 {
+	flex: 15%;
+	padding: 2%;
+	max-width: 15%;
+}
+
+.leftcolumn {
+        width: 50%;
+}
+
+.leftpadding {
+	padding: 0px 0px 0px 25px;
+}

@@ -1,0 +1,58 @@
+.table_0 {
+	width:0%
+}
+.table_20 {
+	min-width:20%
+}
+.oct_table_reqd {
+	width:33%;
+	vertical-align:middle !important;
+}
+.oct_table_opt {
+	visibility: hidden !important;
+	display: none !important;
+}
+.table_50 {
+	width:50%
+}
+.table_90 {
+	width:100%
+}
+.refresh-btn {
+	display: none;
+	visibility: hidden;
+}
+.small-input {
+	font-size: 10px;
+}
+
+.column {
+	flex: 45%;
+	padding: 2%;
+	max-width: 45%;
+}
+
+.column2 {
+	flex: 90%;
+	padding: 2%;
+	max-width: 90%;
+}
+
+.column3 {
+	flex: 45%;
+	padding: 2%;
+	max-width: 45%;
+}
+
+.column4 {
+	display: none;
+	visibility: hidden;
+}
+
+.leftcolumn {
+        width: 50%;
+}
+
+.leftpadding {
+	padding: 0px 0px 0px 0px;
+}
